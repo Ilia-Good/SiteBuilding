@@ -1,0 +1,228 @@
+@{
+    ViewData["Title"] = "Генератор HTML шаблонов";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <!-- Заголовок -->
+            <div class="text-center mb-5">
+                <h1 class="display-4">🎨 Генератор HTML шаблонов</h1>
+                <p class="lead text-muted">Создавайте красивые мини-сайты за несколько секунд</p>
+            </div>
+
+            <!-- Карточка с формой -->
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-4">
+                    
+                    <!-- Форма ввода -->
+                    <form id="templateForm" class="mb-4">
+                        <div class="form-group mb-3">
+                            <label for="siteName" class="form-label">
+                                <strong>📝 Название сайта</strong>
+                            </label>
+                            <input 
+                                type="text" 
+                                class="form-control" 
+                                id="siteName" 
+                                placeholder="Мой Классный Сайт" 
+                                value="Мой Сайт"
+                                required
+                            >
+                            <small class="text-muted">Будет отображаться в навигации и на главном экране</small>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="siteDescription" class="form-label">
+                                <strong>✍️ Описание сайта</strong>
+                            </label>
+                            <textarea 
+                                class="form-control" 
+                                id="siteDescription" 
+                                rows="3" 
+                                placeholder="Добро пожаловать на мой сайт..."
+                                required
+                            >Добро пожаловать на мой сайт!</textarea>
+                            <small class="text-muted">Краткое описание вашего проекта</small>
+                        </div>
+
+                        <!-- Кнопки действий -->
+                        <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                            <button 
+                                type="button" 
+                                class="btn btn-primary btn-lg" 
+                                id="previewBtn"
+                                onclick="handlePreview()"
+                            >
+                                👁️ Превью
+                            </button>
+                            <button 
+                                type="button" 
+                                class="btn btn-success btn-lg" 
+                                id="downloadBtn"
+                                onclick="handleDownload()"
+                            >
+                                ⬇️ Скачать HTML
+                            </button>
+                            <button 
+                                type="button" 
+                                class="btn btn-info btn-lg" 
+                                id="openBtn"
+                                onclick="handleOpenNew()"
+                            >
+                                🔗 Открыть в новой вкладке
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Инструкция -->
+                    <div class="alert alert-info alert-dismissible fade show" role="alert">
+                        <h5 class="alert-heading">💡 Как использовать?</h5>
+                        <ol class="mb-0 ps-3">
+                            <li>Введите название и описание вашего сайта</li>
+                            <li>Нажмите <strong>"Превью"</strong> чтобы увидеть результат</li>
+                            <li>Нажмите <strong>"Скачать HTML"</strong> чтобы получить файл</li>
+                            <li>Отредактируйте форму обратной связи
+                                <ul>
+                                    <li>Перейдите на <a href="https://formspree.io" target="_blank">formspree.io</a></li>
+                                    <li>Создайте новую форму с вашей почтой</li>
+                                    <li>Замените <code>YOUR_FORM_ID</code> на полученный ID</li>
+                                </ul>
+                            </li>
+                            <li>Добавьте своё изображение вместо плейсхолдера</li>
+                            <li>Опубликуйте HTML файл на хостинге</li>
+                        </ol>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+
+                    <!-- Возможности -->
+                    <div class="row mt-4">
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div style="font-size: 1.5rem; margin-right: 10px;">✨</div>
+                                <div>
+                                    <strong>Современный дизайн</strong><br>
+                                    <small class="text-muted">Красивый и профессиональный вид</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div style="font-size: 1.5rem; margin-right: 10px;">📱</div>
+                                <div>
+                                    <strong>Адаптивный</strong><br>
+                                    <small class="text-muted">Работает на любых устройствах</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div style="font-size: 1.5rem; margin-right: 10px;">📬</div>
+                                <div>
+                                    <strong>Форма связи</strong><br>
+                                    <small class="text-muted">Встроенная форма обратной связи</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="d-flex align-items-start">
+                                <div style="font-size: 1.5rem; margin-right: 10px;">🎨</div>
+                                <div>
+                                    <strong>Кастомизируемый</strong><br>
+                                    <small class="text-muted">Легко редактировать HTML/CSS</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/template-generator.js"></script>
+<script>
+    // Обработчик для превью
+    async function handlePreview() {
+        const siteName = document.getElementById('siteName').value;
+        const siteDescription = document.getElementById('siteDescription').value;
+        
+        document.getElementById('previewBtn').disabled = true;
+        document.getElementById('previewBtn').innerHTML = '⏳ Генерирую...';
+        
+        try {
+            await templateGen.generateAndPreview(siteName, siteDescription);
+        } finally {
+            document.getElementById('previewBtn').disabled = false;
+            document.getElementById('previewBtn').innerHTML = '👁️ Превью';
+        }
+    }
+
+    // Обработчик для скачивания
+    async function handleDownload() {
+        const siteName = document.getElementById('siteName').value;
+        const siteDescription = document.getElementById('siteDescription').value;
+        
+        document.getElementById('downloadBtn').disabled = true;
+        document.getElementById('downloadBtn').innerHTML = '⏳ Скачиваю...';
+        
+        try {
+            await templateGen.downloadTemplate(siteName, siteDescription);
+        } finally {
+            document.getElementById('downloadBtn').disabled = false;
+            document.getElementById('downloadBtn').innerHTML = '⬇️ Скачать HTML';
+        }
+    }
+
+    // Обработчик для открытия в новой вкладке
+    async function handleOpenNew() {
+        const siteName = document.getElementById('siteName').value;
+        const siteDescription = document.getElementById('siteDescription').value;
+        
+        document.getElementById('openBtn').disabled = true;
+        document.getElementById('openBtn').innerHTML = '⏳ Открываю...';
+        
+        try {
+            const html = await templateGen.generateTemplate(siteName, siteDescription);
+            templateGen.openInNewTab(html);
+        } finally {
+            document.getElementById('openBtn').disabled = false;
+            document.getElementById('openBtn').innerHTML = '🔗 Открыть в новой вкладке';
+        }
+    }
+
+    // Автозаполнение примерными данными (опционально)
+    document.addEventListener('DOMContentLoaded', function() {
+        // Можно добавить здесь автозаполнение данных пользователя из API, если нужно
+        // Например: document.getElementById('siteName').value = userSiteName;
+    });
+</script>
+
+<style>
+    .btn {
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn:disabled {
+        opacity: 0.7;
+        transform: none;
+    }
+    
+    .form-control:focus {
+        border-color: #4f46e5;
+        box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25);
+    }
+    
+    .card {
+        transition: box-shadow 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15) !important;
+    }
+</style>

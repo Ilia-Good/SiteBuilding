@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using SiteBuilder.Data;
 using SiteBuilder.Middleware;
 using SiteBuilder.Models;
+using SiteBuilder.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -81,6 +82,8 @@ builder.Services
             }
         };
     });
+
+builder.Services.AddSingleton<HtmlTemplateGenerator>();
 
 builder.Services.AddAuthorization();
 
