@@ -55,7 +55,8 @@ public class TrialMiddleware
         }
 
         var now = DateTime.UtcNow;
-        var hasExpiredUnpaid = await db.Sites.AnyAsync(s => s.OwnerUserId == userId && !s.IsPaid && s.ExpiresAt <= now);
+        var hasExpiredUnpaid = await db.Sites
+            .AnyAsync(s => s.OwnerUserId == userId && (!s.IsPaid && s.ExpiresAt <= now || !s.IsActive));
         if (!hasExpiredUnpaid)
         {
             await _next(context);

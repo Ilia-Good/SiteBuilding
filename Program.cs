@@ -85,6 +85,8 @@ builder.Services
 
 builder.Services.AddSingleton<HtmlTemplateGenerator>();
 
+builder.Services.AddHostedService<TrialCheckService>();
+
 builder.Services.AddAuthorization();
 
 var app = builder.Build();

@@ -18,7 +18,11 @@ public class Site
 
     public DateTime ExpiresAt { get; set; }
 
+    public DateTime? PublishedAt { get; set; }
+
     public bool IsPaid { get; set; }
+
+    public bool IsActive { get; set; } = true;
 
     [MaxLength(256)]
     public string? GithubPath { get; set; }

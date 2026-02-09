@@ -3186,11 +3186,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\GoodIlia\\Desktop\\SiteBuilding\\SiteBuilding\\SiteBuilder.csproj",
+      "projectUniqueName": "C:\\Users\\GoodIlia\\Desktop\\SiteBuilding\\SiteBuilder.csproj",
       "projectName": "SiteBuilder",
-      "projectPath": "C:\\Users\\GoodIlia\\Desktop\\SiteBuilding\\SiteBuilding\\SiteBuilder.csproj",
+      "projectPath": "C:\\Users\\GoodIlia\\Desktop\\SiteBuilding\\SiteBuilder.csproj",
       "packagesPath": "C:\\Users\\GoodIlia\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\GoodIlia\\Desktop\\SiteBuilding\\SiteBuilding\\obj\\",
+      "outputPath": "C:\\Users\\GoodIlia\\Desktop\\SiteBuilding\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

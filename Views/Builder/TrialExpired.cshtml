@@ -1,15 +1,50 @@
 @{
-    ViewData["Title"] = "Пробный период";
+    ViewData["Title"] = "РџСЂРѕР±РЅС‹Р№ РїРµСЂРёРѕРґ Р·Р°РІРµСЂС€РёР»СЃСЏ";
 }
 
-<div class="card shadow-sm">
-    <div class="card-body">
-        <h1 class="h4">Пробный период закончился</h1>
-        <p class="text-muted">
-            Ваш 48-часовой пробный период завершён. Чтобы продолжить публиковать сайты, отметьте оплату.
-        </p>
-        <p class="text-muted mb-0">
-            Мы уже добавили структуру для оплаты. Используйте эндпоинт <code>/mark-paid/&lt;siteId&gt;</code> как заглушку.
-        </p>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5 text-center">
+                    <div style="font-size: 3rem; margin-bottom: 1.5rem;">вЏ±пёЏ</div>
+                    <h1 class="card-title h3 mb-3">РџСЂРѕР±РЅС‹Р№ РїРµСЂРёРѕРґ Р·Р°РІРµСЂС€РёР»СЃСЏ</h1>
+                    
+                    <p class="text-muted mb-4">
+                        Р’Р°С€ 2-РґРЅРµРІРЅС‹Р№ РїСЂРѕР±РЅС‹Р№ РїРµСЂРёРѕРґ Р·Р°РєРѕРЅС‡РёР»СЃСЏ. РЎР°Р№С‚РѕРІ РјР°РєСЃРёРјСѓРј 3 С€С‚СѓРєРё РЅР° Р°РєРєР°СѓРЅС‚Рµ.
+                    </p>
+
+                    <div class="alert alert-info mb-4" role="alert">
+                        <strong>Р§С‚Рѕ РґР°Р»СЊС€Рµ?</strong>
+                        <p class="mb-0 mt-2">
+                            Р’С‹ РјРѕР¶РµС‚Рµ СЃРѕР·РґР°РІР°С‚СЊ РЅРѕРІС‹Рµ СЃР°Р№С‚С‹, РЅРѕ РѕРЅРё Р±СѓРґСѓС‚ РЅРµР°РєС‚РёРІРЅС‹ РїРѕСЃР»Рµ РёСЃС‚РµС‡РµРЅРёСЏ trial.
+                            РџРѕРјРµС‚СЊС‚Рµ СЃР°Р№С‚ РєР°Рє РѕРїР»Р°С‡РµРЅРЅС‹Р№, С‡С‚РѕР±С‹ РѕРЅ РѕСЃС‚Р°Р»СЃСЏ Р°РєС‚РёРІРЅС‹Рј.
+                        </p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a href="/sites" class="btn btn-primary btn-lg">
+                            Р’РµСЂРЅСѓС‚СЊСЃСЏ Рє СЃР°Р№С‚Р°Рј
+                        </a>
+                        <a href="/builder" class="btn btn-outline-secondary btn-lg">
+                            РЎРѕР·РґР°С‚СЊ РЅРѕРІС‹Р№ СЃР°Р№С‚
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+    
+    .card {
+        border-radius: 12px;
+    }
+</style>

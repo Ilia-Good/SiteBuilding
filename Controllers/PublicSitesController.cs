@@ -23,7 +23,7 @@ public class PublicSitesController : Controller
         pagesBase = EnsureTrailingSlash(pagesBase);
 
         var sites = await _db.Sites
-            .Where(s => !string.IsNullOrWhiteSpace(s.GithubPath))
+            .Where(s => !string.IsNullOrWhiteSpace(s.GithubPath) && s.IsActive)
             .OrderByDescending(s => s.CreatedAt)
             .Select(s => new PublicSiteCard
             {

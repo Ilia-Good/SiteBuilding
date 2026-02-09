@@ -207,6 +207,8 @@ public class PublishController : ControllerBase
         }
 
         site.GithubPath = filePath;
+        site.PublishedAt = now;
+        site.IsActive = true;
 
         if (usage is null)
         {
