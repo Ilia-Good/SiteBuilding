@@ -1,0 +1,73 @@
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8773683201595025"
+        crossorigin="anonymous"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(string.IsNullOrWhiteSpace(ViewData["Title"] as string) ? "SiteBuilding — конструктор сайтов" : $"{ViewData["Title"]} | SiteBuilding")</title>
+
+    <meta name="description" content="SiteBuilding — конструктор мини‑сайтов. Быстро собери сайт и опубликуй." />
+    <link rel="canonical" href="https://sitebuilding.onrender.com/" />
+    <meta name="robots" content="index,follow" />
+
+    <meta property="og:title" content="SiteBuilding — конструктор сайтов" />
+    <meta property="og:description" content="Соберите мини‑сайт за минуты и опубликуйте." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://sitebuilding.onrender.com/" />
+    <meta property="og:image" content="https://sitebuilding.onrender.com/favicon.ico" />
+
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322c55e'/%3E%3Cstop offset='1' stop-color='%230ea5e9'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='14' fill='url(%23g)'/%3E%3Cpath d='M18 33 L28 43 L46 21' stroke='%230f172a' stroke-width='6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
+    <link rel="alternate icon" href="~/favicon.ico" />
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/SiteBuilder.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+    <header>
+        <nav class="navbar app-navbar mb-3">
+            <div class="container-fluid">
+                <a class="navbar-brand app-navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <span class="app-logo-dot"></span>
+                    SiteBuilding
+                </a>
+                <div class="app-navbar-links d-none d-lg-flex">
+                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
+                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="Builder" asp-action="Index">Конструктор</a>
+                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="PublicSites" asp-action="Index">Мини-сайты</a>
+                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="Sites" asp-action="Index">Мои сайты</a>
+                </div>
+                <div class="app-navbar-actions d-flex align-items-center gap-2">
+                    @if (User?.Identity?.IsAuthenticated ?? false)
+                    {
+                        var email = User.FindFirstValue(ClaimTypes.Email);
+                        var nick = string.IsNullOrWhiteSpace(email) ? "друг" : email.Split('@')[0];
+                        @await Component.InvokeAsync("UserSitesMenu")
+                        <span class="app-user-email">Привет, @nick</span>
+                        <form method="post" asp-controller="Account" asp-action="Logout">
+                            <button type="submit" class="btn btn-sm btn-outline-light app-nav-btn">Выйти</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a class="btn btn-sm btn-outline-light app-nav-btn" asp-controller="Account" asp-action="Login">Войти через Google</a>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

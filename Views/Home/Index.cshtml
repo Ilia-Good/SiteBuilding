@@ -1,0 +1,64 @@
+﻿@model SiteBuilder.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "SiteBuilding";
+}
+
+<div class="home-hero text-center">
+    <h1 class="display-4 mb-3">SiteBuilding</h1>
+    <div class="home-hero-art" aria-hidden="true"></div>
+    <p class="lead mb-4">
+        Конструктор одностраничных сайтов из блоков: заголовки, текст, изображения, кнопки и секции.
+    </p>
+    <a class="btn btn-primary btn-lg px-4" asp-controller="Builder" asp-action="Index">
+        Открыть конструктор
+    </a>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-6 mb-4">
+        <h2 class="h4">Правила и ограничения</h2>
+        <ul class="home-list">
+            <li>Максимум 3 сайта на пользователя. Новый сайт можно создать только после удаления одного из своих.</li>
+            <li>Имя сайта должно быть уникальным для всех пользователей. Если имя занято — публикация запрещена.</li>
+            <li>До 3 изменений в день для каждого сайта.</li>
+            <li>Пробный период: 48 часов для каждого нового сайта.</li>
+        </ul>
+    </div>
+    <div class="col-md-6 mb-4">
+        <h2 class="h4">Как это работает</h2>
+        <ol class="home-list">
+            <li>Задайте название, шапку и футер.</li>
+            <li>Добавьте блоки: заголовок, текст, изображение, кнопка, секция.</li>
+            <li>Редактируйте слева и сразу смотрите результат справа.</li>
+            <li>Нажмите «Опубликовать сайт» и получите ссылку.</li>
+        </ol>
+    </div>
+</div>
+
+@if (Model.FeaturedSites.Count > 0)
+{
+    <div class="mt-5">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+            <h2 class="h4 mb-0">Лучшие мини-сайты</h2>
+            <a class="btn btn-sm btn-outline-light" href="/explore">Смотреть все</a>
+        </div>
+        <div class="row">
+            @foreach (var site in Model.FeaturedSites)
+            {
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@site.SiteName</h5>
+                            <div class="text-muted small mb-3">Опубликован: @site.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                            <a class="btn btn-sm btn-primary mt-auto" href="@site.Url" target="_blank" rel="noopener noreferrer">Открыть</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="home-note mt-3">
+    <strong>Публикация:</strong> сайт автоматически размещается через GitHub Pages. Подождите пару минут после публикации.
+</div>

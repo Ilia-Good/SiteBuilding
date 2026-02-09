@@ -1,0 +1,1383 @@
+﻿@{
+    ViewData["Title"] = "Builder";
+}
+
+<div class="mb-3">
+    <h1 class="h3">Конструктор сайта</h1>
+    <p class="text-muted mb-0">
+        1) Добавьте блоки: заголовок, текст, изображение, кнопка, секция.&nbsp;
+        2) Редактируйте слева и сразу смотрите результат справа.&nbsp;
+        3) Название сайта используется как адрес публикации.
+    </p>
+</div>
+
+<div class="row builder-root">
+    <div class="col-md-5 col-lg-4 mb-3 builder-settings-col is-open">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Настройки страницы</h5>
+
+                <div class="mb-2">
+                    <label class="form-label" for="siteTitleInput">Название сайта</label>
+                    <input class="form-control" id="siteTitleInput" placeholder="Мой сайт" />
+                    <div class="form-text text-muted">Адрес сайта берётся из названия.</div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="siteTitleColorInput">Цвет названия</label>
+                    <input class="form-control form-control-color w-100" id="siteTitleColorInput" type="color" value="#f8fafc" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="headerInput">Текст шапки</label>
+                    <textarea class="form-control" id="headerInput" rows="2" placeholder="Текст шапки"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="headerAlignInput">Выравнивание шапки</label>
+                    <select class="form-select" id="headerAlignInput">
+                        <option value="left">Слева</option>
+                        <option value="center">По центру</option>
+                        <option value="right">Справа</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="headerColorInput">Цвет текста шапки</label>
+                    <input class="form-control form-control-color w-100" id="headerColorInput" type="color" value="#e5e7eb" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="footerInput">Текст футера</label>
+                    <textarea class="form-control" id="footerInput" rows="2" placeholder="Текст футера"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="footerAlignInput">Выравнивание футера</label>
+                    <select class="form-select" id="footerAlignInput">
+                        <option value="left">Слева</option>
+                        <option value="center">По центру</option>
+                        <option value="right">Справа</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="footerColorInput">Цвет текста футера</label>
+                    <input class="form-control form-control-color w-100" id="footerColorInput" type="color" value="#e5e7eb" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="avatarInput">Логотип/иконка сайта (favicon, URL)</label>
+                    <input class="form-control" id="avatarInput" placeholder="https://..." />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="backgroundColorInput">Цвет фона</label>
+                    <input class="form-control form-control-color w-100" id="backgroundColorInput" type="color" value="#0b1220" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="effectSelect">Глобальный эффект</label>
+                    <select class="form-select" id="effectSelect">
+                        <option value="none">Нет</option>
+                        <option value="shadow">Тень</option>
+                        <option value="glow">Свечение</option>
+                    </select>
+                </div>
+
+                <hr />
+
+                <h5 class="card-title mb-2">Блоки</h5>
+                <p class="text-muted small mb-2">Добавляйте блоки, редактируйте и удаляйте при необходимости.</p>
+
+                <div class="d-grid gap-2 mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="heading">Добавить заголовок</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="text">Добавить текст</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="image">Добавить изображение</button>
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="button">Добавить кнопку</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-add-block="section">Добавить секцию</button>
+                </div>
+
+                <div id="blocksEditor" class="builder-blocks-editor small"></div>
+
+                <hr />
+
+                <h5 class="card-title mb-2">Публикация (GitHub Pages)</h5>
+                <p class="text-muted small mb-2">Название сайта используется в адресе. Нажмите «Опубликовать сайт».</p>
+
+                <button type="button" id="generateUploadBtnLeft" class="btn btn-primary w-100 d-none">
+                    Опубликовать сайт
+                </button>
+                <div id="publishStatusLeft" class="publish-status d-none"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7 col-lg-8 mb-3 builder-preview-col">
+        <div class="card shadow-sm h-100 builder-preview-card">
+            <div class="card-body">
+                <div class="builder-preview-toolbar">
+                    <div>
+                        <div class="builder-preview-title">Превью</div>
+                        <div class="builder-preview-subtitle">Добавляйте блоки слева или ПКМ по холсту.</div>
+                    </div>
+                    <div class="builder-preview-actions">
+                        <button type="button" id="settingsToggle" class="btn btn-outline-light btn-sm">Настройки</button>
+                        <button type="button" id="generateUploadBtn" class="btn btn-primary btn-sm">Опубликовать</button>
+                    </div>
+                </div>
+                <div id="publishStatus" class="publish-status builder-publish-status"></div>
+                <div id="builderPreview" class="builder-preview border rounded p-3">
+                    <div class="text-muted small">
+                        Добавляйте блоки слева или ПКМ по холсту.
+                    </div>
+                </div>
+                <div id="builderContextMenu" class="builder-context-menu d-none" aria-hidden="true">
+                    <div class="builder-context-title">Добавить блок</div>
+                    <button type="button" class="builder-context-item" data-context-add="heading">Заголовок</button>
+                    <button type="button" class="builder-context-item" data-context-add="text">Текст</button>
+                    <button type="button" class="builder-context-item" data-context-add="image">Изображение</button>
+                    <button type="button" class="builder-context-item" data-context-add="button">Кнопка</button>
+                    <button type="button" class="builder-context-item" data-context-add="section">Секция</button>
+                    <div class="builder-context-divider"></div>
+                    <button type="button" class="builder-context-item builder-context-danger" data-context-delete>Удалить блок</button>
+                </div>
+                <div id="generateOverlay" class="builder-generate-overlay d-none">
+                    <div class="spinner-border text-light me-2" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span id="generateOverlayText">Подождите...</span>
+                </div>
+                <div id="publishModal" class="builder-modal d-none" aria-hidden="true">
+                    <div class="builder-modal-card">
+                        <div class="builder-modal-title">Готово! Ссылка на сайт</div>
+                        <a id="publishModalLink" class="builder-modal-link" href="#" target="_blank" rel="noopener noreferrer"></a>
+                        <div class="builder-modal-note">Подождите пару минут, пока сайт загрузится.</div>
+                        <button type="button" id="publishModalClose" class="btn btn-outline-light btn-sm mt-2">
+                            Закрыть
+                        </button>
+                    </div>
+                </div>
+                <div id="templateModal" class="builder-modal d-none" aria-hidden="true">
+                    <div class="builder-modal-card">
+                        <div class="builder-modal-title">Выберите шаблон</div>
+                        <div class="d-grid gap-2 mt-3">
+                            <button type="button" class="btn btn-outline-light" data-template="blank">Пустой</button>
+                            <button type="button" class="btn btn-outline-light" data-template="portfolio">Портфолио</button>
+                            <button type="button" class="btn btn-outline-light" data-template="product">Продуктовый лендинг</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .builder-root {
+            min-height: 60vh;
+            align-items: flex-start;
+        }
+
+        .builder-preview {
+            background: radial-gradient(circle at top, #1f2937 0, #020617 55%, #000 100%);
+            min-height: 300px;
+            color: #e5e7eb;
+            position: relative;
+            overflow: hidden;
+            animation: builderPreviewFade 0.4s ease-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .builder-preview-card {
+            position: sticky;
+            top: 1rem;
+            align-self: flex-start;
+        }
+
+        .builder-preview::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at top left, rgba(96, 165, 250, 0.2), transparent 60%);
+            pointer-events: none;
+        }
+
+        .builder-preview-header,
+        .builder-preview-footer {
+            padding: .75rem 1rem;
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: .25rem;
+            margin-bottom: .75rem;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+        }
+
+        .builder-preview-footer {
+            margin-top: .75rem;
+        }
+
+        .builder-preview-content {
+            flex: 1 0 auto;
+        }
+
+        .builder-blocks-editor .builder-block-editor {
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            border-radius: .25rem;
+            padding: .5rem .75rem;
+            margin-bottom: .5rem;
+            background-color: rgba(15, 23, 42, 0.7);
+        }
+
+        .builder-blocks-editor .builder-block-editor.is-selected {
+            border-color: rgba(59, 130, 246, 0.7);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        .builder-blocks-editor .builder-block-editor-title {
+            font-weight: 600;
+            margin-bottom: .25rem;
+        }
+
+        .builder-blocks-editor .builder-block-editor-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: .25rem;
+        }
+
+        .builder-blocks-editor .builder-block-editor-actions button {
+            border: none;
+            background: none;
+            padding: 0 .15rem;
+            color: #a1a1aa;
+            font-size: .85rem;
+        }
+
+        .builder-blocks-editor .builder-block-editor-actions button:hover {
+            color: #dc3545;
+        }
+
+        .builder-generate-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.8);
+            color: #e5e7eb;
+            font-size: .9rem;
+            gap: .5rem;
+            z-index: 5;
+        }
+
+        .builder-modal {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(2, 6, 23, 0.75);
+            z-index: 6;
+        }
+
+        .builder-modal-card {
+            max-width: 420px;
+            width: 100%;
+            margin: 0 1rem;
+            padding: 1rem 1.25rem;
+            border-radius: .8rem;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.8);
+            text-align: center;
+            animation: builderPreviewFade .35s ease-out;
+        }
+
+        .builder-modal-title {
+            font-weight: 700;
+            margin-bottom: .5rem;
+        }
+
+        .builder-modal-link {
+            display: inline-block;
+            color: #60a5fa;
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .builder-modal-link:hover {
+            text-decoration: underline;
+        }
+
+        .builder-modal-note {
+            margin-top: .5rem;
+            color: #cbd5f5;
+            font-size: .9rem;
+        }
+
+        .builder-root .text-muted {
+            color: #cbd5f5 !important;
+        }
+
+        .builder-root .form-label,
+        .builder-root .card-title,
+        .builder-root .btn,
+        .builder-root .form-select,
+        .builder-root .form-control {
+            color: #e5e7eb;
+        }
+
+        .builder-root .form-control,
+        .builder-root .form-select {
+            background: rgba(15, 23, 42, 0.95);
+            border-color: rgba(148, 163, 184, 0.45);
+        }
+
+        .builder-root .form-control::placeholder,
+        .builder-root textarea::placeholder {
+            color: rgba(226, 232, 240, 0.7);
+        }
+
+        .builder-root .form-select option {
+            color: #0f172a;
+        }
+
+        .builder-root .btn-outline-primary,
+        .builder-root .btn-outline-secondary {
+            border-color: rgba(148, 163, 184, 0.4);
+            color: #e5e7eb;
+        }
+
+        .builder-preview-avatar {
+            width: 72px;
+            height: 72px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+        }
+
+        .builder-effect-shadow {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .builder-effect-glow {
+            box-shadow: 0 0 24px rgba(99, 102, 241, 0.65);
+        }
+
+        @@keyframes builderPreviewFade {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .builder-root {
+            width: 100vw;
+            margin-left: calc(50% - 50vw);
+            padding: 0 1.5rem 1.5rem;
+            min-height: calc(100vh - 140px);
+        }
+
+        .builder-settings-col {
+            position: fixed;
+            top: 6rem;
+            left: 1.25rem;
+            width: min(360px, 92vw);
+            max-height: calc(100vh - 7rem);
+            z-index: 7;
+            transform: translateX(-120%);
+            transition: transform 0.25s ease, opacity 0.25s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .builder-settings-col.is-open {
+            transform: translateX(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .builder-settings-col .card {
+            max-height: calc(100vh - 7rem);
+            overflow: auto;
+        }
+
+        .builder-preview-col {
+            flex: 1 0 100%;
+            max-width: 100%;
+        }
+
+        .builder-preview-card {
+            position: relative;
+            top: 0;
+        }
+
+        .builder-preview {
+            min-height: calc(100vh - 220px);
+            padding-top: 3.75rem;
+        }
+
+        .builder-preview-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: .75rem;
+        }
+
+        .builder-preview-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .builder-preview-subtitle {
+            font-size: .85rem;
+            color: #cbd5f5;
+        }
+
+        .builder-preview-actions {
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            flex-wrap: wrap;
+        }
+
+        .builder-publish-status {
+            margin: 0 0 .75rem;
+        }
+
+        .builder-context-menu {
+            position: fixed;
+            min-width: 200px;
+            padding: .5rem;
+            background: rgba(15, 23, 42, 0.98);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: .6rem;
+            box-shadow: 0 20px 60px rgba(15, 23, 42, 0.6);
+            z-index: 25;
+        }
+
+        .builder-context-title {
+            font-size: .75rem;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: #94a3b8;
+            padding: .25rem .4rem .5rem;
+        }
+
+        .builder-context-item {
+            width: 100%;
+            text-align: left;
+            border: none;
+            background: transparent;
+            color: #e5e7eb;
+            padding: .4rem .5rem;
+            border-radius: .4rem;
+        }
+
+        .builder-context-item:hover {
+            background: rgba(148, 163, 184, 0.18);
+        }
+
+        .builder-context-divider {
+            height: 1px;
+            background: rgba(148, 163, 184, 0.2);
+            margin: .4rem 0;
+        }
+
+        .builder-context-danger {
+            color: #fca5a5;
+        }
+
+        .builder-preview-block {
+            padding: .35rem .5rem;
+            border-radius: .4rem;
+        }
+
+        .builder-preview-block.is-selected {
+            outline: 2px solid rgba(59, 130, 246, 0.65);
+            background: rgba(15, 23, 42, 0.4);
+        }
+
+        .builder-editable:focus {
+            outline: 2px dashed rgba(96, 165, 250, 0.7);
+            outline-offset: 2px;
+        }
+
+        @@media (max-width: 991px) {
+            .builder-settings-col {
+                top: 5.5rem;
+                left: .75rem;
+            }
+
+            .builder-preview {
+                min-height: calc(100vh - 200px);
+            }
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        (function () {
+            const siteTitleInput = document.getElementById('siteTitleInput');
+            const siteTitleColorInput = document.getElementById('siteTitleColorInput');
+            const headerInput = document.getElementById('headerInput');
+            const headerAlignInput = document.getElementById('headerAlignInput');
+            const headerColorInput = document.getElementById('headerColorInput');
+            const footerInput = document.getElementById('footerInput');
+            const footerAlignInput = document.getElementById('footerAlignInput');
+            const footerColorInput = document.getElementById('footerColorInput');
+            const avatarInput = document.getElementById('avatarInput');
+            const backgroundColorInput = document.getElementById('backgroundColorInput');
+            const effectSelect = document.getElementById('effectSelect');
+            const blocksEditor = document.getElementById('blocksEditor');
+            const preview = document.getElementById('builderPreview');
+            const publishStatus = document.getElementById('publishStatus');
+            const publishStatusLeft = document.getElementById('publishStatusLeft');
+            const generateUploadBtn = document.getElementById('generateUploadBtn');
+            const generateUploadBtnLeft = document.getElementById('generateUploadBtnLeft');
+            const publishModal = document.getElementById('publishModal');
+            const publishModalLink = document.getElementById('publishModalLink');
+            const publishModalClose = document.getElementById('publishModalClose');
+            const addButtons = document.querySelectorAll('[data-add-block]');
+            const settingsToggle = document.getElementById('settingsToggle');
+            const settingsColumn = document.querySelector('.builder-settings-col');
+            const contextMenu = document.getElementById('builderContextMenu');
+            const contextAddButtons = contextMenu?.querySelectorAll('[data-context-add]') || [];
+            const contextDeleteButton = contextMenu?.querySelector('[data-context-delete]');
+            const generateOverlay = document.getElementById('generateOverlay');
+            const generateOverlayText = document.getElementById('generateOverlayText');
+            const templateModal = document.getElementById('templateModal');
+            const templateButtons = templateModal?.querySelectorAll('[data-template]') || [];
+
+            let blocks = [];
+            let blockIdCounter = 1;
+            let selectedBlockId = null;
+            let saveTimer = null;
+            let hadSavedState = false;
+            let suppressContextClose = false;
+            let contextTargetId = null;
+
+            const templates = {
+                blank: {
+                    title: 'Мой сайт',
+                    header: 'Добро пожаловать',
+                    footer: 'Спасибо за внимание!',
+                    blocks: []
+                },
+                portfolio: {
+                    title: 'Портфолио',
+                    header: 'Привет! Я дизайнер.',
+                    footer: 'Связаться: hello@example.com',
+                    blocks: [
+                        { type: 'heading', content: 'Проекты', align: 'left' },
+                        { type: 'text', content: 'Описание сильных сторон и опыта.', align: 'left' },
+                        { type: 'image', content: 'https://placehold.co/900x500?text=Project+Preview', align: 'left' },
+                        { type: 'button', content: 'Написать мне', url: 'https://t.me/', align: 'left', buttonColor: '#22c55e' }
+                    ]
+                },
+                product: {
+                    title: 'Новый продукт',
+                    header: 'Запуск за 7 дней',
+                    footer: 'Оставьте заявку на демо',
+                    blocks: [
+                        { type: 'heading', content: 'Почему мы', align: 'left' },
+                        { type: 'text', content: 'Короткое описание продукта и ключевых выгод.', align: 'left' },
+                        { type: 'section', content: 'Особенности', align: 'left' },
+                        { type: 'button', content: 'Попробовать', url: 'https://example.com', align: 'left', buttonColor: '#2563eb' }
+                    ]
+                }
+            };
+
+            if (settingsToggle && settingsColumn) {
+                settingsToggle.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    settingsColumn.classList.toggle('is-open');
+                });
+            }
+
+            siteTitleInput.addEventListener('input', renderPreview);
+            siteTitleColorInput.addEventListener('input', renderPreview);
+            headerInput.addEventListener('input', renderPreview);
+            headerAlignInput.addEventListener('change', renderPreview);
+            headerColorInput.addEventListener('input', renderPreview);
+            footerInput.addEventListener('input', renderPreview);
+            footerAlignInput.addEventListener('change', renderPreview);
+            footerColorInput.addEventListener('input', renderPreview);
+            avatarInput.addEventListener('input', renderPreview);
+            backgroundColorInput.addEventListener('input', renderPreview);
+            effectSelect.addEventListener('change', renderPreview);
+
+            siteTitleInput.addEventListener('input', scheduleSave);
+            siteTitleColorInput.addEventListener('input', scheduleSave);
+            headerInput.addEventListener('input', scheduleSave);
+            headerAlignInput.addEventListener('change', scheduleSave);
+            headerColorInput.addEventListener('input', scheduleSave);
+            footerInput.addEventListener('input', scheduleSave);
+            footerAlignInput.addEventListener('change', scheduleSave);
+            footerColorInput.addEventListener('input', scheduleSave);
+            avatarInput.addEventListener('input', scheduleSave);
+            backgroundColorInput.addEventListener('input', scheduleSave);
+            effectSelect.addEventListener('change', scheduleSave);
+
+            addButtons.forEach((btn) => {
+                btn.addEventListener('click', () => addBlock(btn.dataset.addBlock));
+            });
+
+            templateButtons.forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    applyTemplate(btn.dataset.template || 'blank');
+                    hideTemplateModal();
+                });
+            });
+
+            if (contextMenu) {
+                preview.addEventListener('contextmenu', (event) => {
+                    event.preventDefault();
+                    showContextMenu(event.clientX, event.clientY);
+                });
+
+                contextAddButtons.forEach((btn) => {
+                    btn.addEventListener('click', () => {
+                        addBlock(btn.dataset.contextAdd);
+                        closeContextMenu();
+                    });
+                });
+
+                if (contextDeleteButton) {
+                    contextDeleteButton.addEventListener('click', () => {
+                        if (!contextTargetId) return;
+                        if (!window.confirm('Удалить блок?')) return;
+                        blocks = blocks.filter(b => b.id !== contextTargetId);
+                        contextTargetId = null;
+                        selectBlock(null);
+                        renderEditors();
+                        renderPreview();
+                        scheduleSave();
+                        closeContextMenu();
+                    });
+                }
+
+                document.addEventListener('click', (event) => {
+                    if (contextMenu.classList.contains('d-none')) return;
+                    if (suppressContextClose) {
+                        suppressContextClose = false;
+                        return;
+                    }
+                    if (!contextMenu.contains(event.target)) {
+                        closeContextMenu();
+                    }
+                });
+
+                window.addEventListener('resize', closeContextMenu);
+                window.addEventListener('scroll', closeContextMenu, true);
+            }
+
+            if (generateUploadBtn) {
+                generateUploadBtn.addEventListener('click', async () => {
+                    await publishSite();
+                });
+            }
+
+            if (generateUploadBtnLeft) {
+                generateUploadBtnLeft.addEventListener('click', async () => {
+                    await publishSite();
+                });
+            }
+
+            if (publishModalClose) {
+                publishModalClose.addEventListener('click', () => {
+                    if (publishModal) publishModal.classList.add('d-none');
+                });
+            }
+
+            if (publishModal) {
+                publishModal.addEventListener('click', (e) => {
+                    if (e.target === publishModal) {
+                        publishModal.classList.add('d-none');
+                    }
+                });
+            }
+
+            function addBlock(type, insertAfterId) {
+                const id = blockIdCounter++;
+                const block = {
+                    id,
+                    type,
+                    content: defaultContent(type),
+                    align: 'left',
+                    color: '#e5e7eb',
+                    effect: 'none'
+                };
+
+                if (type === 'button') {
+                    block.url = 'https://example.com';
+                    block.paddingY = 8;
+                    block.paddingX = 16;
+                    block.buttonColor = '#2563eb';
+                }
+
+                if (type === 'image') {
+                    block.content = 'https://placehold.co/800x400?text=Image';
+                }
+
+                if (insertAfterId) {
+                    const index = blocks.findIndex(b => b.id === insertAfterId);
+                    if (index >= 0) {
+                        blocks.splice(index + 1, 0, block);
+                    } else {
+                        blocks.push(block);
+                    }
+                } else {
+                    blocks.push(block);
+                }
+
+                selectBlock(id);
+                renderEditors();
+                renderPreview();
+                scheduleSave();
+            }
+
+            function defaultContent(type) {
+                switch (type) {
+                    case 'heading': return 'Заголовок';
+                    case 'text': return 'Текст';
+                    case 'image': return 'https://placehold.co/800x400?text=Image';
+                    case 'button': return 'Кнопка';
+                    case 'section': return 'Секция';
+                    default: return '';
+                }
+            }
+
+            function blockTitle(type) {
+                switch (type) {
+                    case 'heading': return 'Заголовок';
+                    case 'text': return 'Текст';
+                    case 'image': return 'Изображение';
+                    case 'button': return 'Кнопка';
+                    case 'section': return 'Секция';
+                    default: return 'Блок';
+                }
+            }
+
+            function selectBlock(id) {
+                selectedBlockId = id;
+                renderEditors();
+                renderPreview();
+            }
+
+            function renderEditors() {
+                if (!blocksEditor) return;
+                blocksEditor.innerHTML = '';
+
+                if (blocks.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'text-muted';
+                    empty.textContent = 'Пока нет блоков. Добавьте первый слева.';
+                    blocksEditor.appendChild(empty);
+                    return;
+                }
+
+                for (const block of blocks) {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'builder-block-editor';
+                    if (block.id === selectedBlockId) wrapper.classList.add('is-selected');
+
+                    const toolbar = document.createElement('div');
+                    toolbar.className = 'builder-block-editor-toolbar';
+
+                    const title = document.createElement('div');
+                    title.className = 'builder-block-editor-title';
+                    title.textContent = blockTitle(block.type);
+
+                    const actions = document.createElement('div');
+                    actions.className = 'builder-block-editor-actions';
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.type = 'button';
+                    deleteBtn.textContent = 'Удалить';
+                    deleteBtn.addEventListener('click', () => {
+                        if (!window.confirm('Удалить блок?')) return;
+                        blocks = blocks.filter(b => b.id !== block.id);
+                        if (selectedBlockId === block.id) selectedBlockId = null;
+                        renderEditors();
+                        renderPreview();
+                        scheduleSave();
+                    });
+
+                    actions.appendChild(deleteBtn);
+                    toolbar.appendChild(title);
+                    toolbar.appendChild(actions);
+
+                    const contentInput = document.createElement(block.type === 'text' ? 'textarea' : 'input');
+                    contentInput.className = 'form-control form-control-sm mb-2';
+                    contentInput.value = block.content || '';
+                    contentInput.placeholder = block.type === 'image' ? 'URL изображения' : 'Текст';
+                    contentInput.addEventListener('input', () => {
+                        block.content = contentInput.value;
+                        renderPreview();
+                        scheduleSave();
+                    });
+
+                    const alignRow = document.createElement('div');
+                    alignRow.className = 'd-flex gap-2 align-items-center mb-2';
+                    const alignSelect = document.createElement('select');
+                    alignSelect.className = 'form-select form-select-sm w-auto';
+                    const alignLabels = { left: 'Слева', center: 'По центру', right: 'Справа' };
+                    ['left', 'center', 'right'].forEach(v => {
+                        const opt = document.createElement('option');
+                        opt.value = v;
+                        opt.textContent = alignLabels[v];
+                        if ((block.align || 'left') === v) opt.selected = true;
+                        alignSelect.appendChild(opt);
+                    });
+                    alignSelect.addEventListener('change', () => {
+                        block.align = alignSelect.value;
+                        renderPreview();
+                        scheduleSave();
+                    });
+                    alignRow.appendChild(alignSelect);
+
+                    const colorInput = document.createElement('input');
+                    colorInput.type = 'color';
+                    colorInput.className = 'form-control form-control-color form-control-sm';
+                    colorInput.value = block.color || '#e5e7eb';
+                    colorInput.addEventListener('input', () => {
+                        block.color = colorInput.value;
+                        renderPreview();
+                        scheduleSave();
+                    });
+                    alignRow.appendChild(colorInput);
+
+                    const effectSelect = document.createElement('select');
+                    effectSelect.className = 'form-select form-select-sm w-auto';
+                    effectSelect.innerHTML = '<option value="none">Нет эффекта</option><option value="shadow">Тень</option><option value="glow">Свечение</option>';
+                    effectSelect.value = block.effect || 'none';
+                    effectSelect.addEventListener('change', () => {
+                        block.effect = effectSelect.value;
+                        renderPreview();
+                        scheduleSave();
+                    });
+                    alignRow.appendChild(effectSelect);
+
+                    wrapper.appendChild(toolbar);
+                    wrapper.appendChild(contentInput);
+
+                    if (block.type === 'button') {
+                        const urlInput = document.createElement('input');
+                        urlInput.className = 'form-control form-control-sm mb-2';
+                        urlInput.value = block.url || '';
+                        urlInput.placeholder = 'URL кнопки (https://...)';
+                        urlInput.addEventListener('input', () => {
+                            block.url = urlInput.value;
+                            renderPreview();
+                            scheduleSave();
+                        });
+                        wrapper.appendChild(urlInput);
+
+                        const buttonColor = document.createElement('input');
+                        buttonColor.type = 'color';
+                        buttonColor.className = 'form-control form-control-color form-control-sm mb-2';
+                        buttonColor.value = block.buttonColor || '#2563eb';
+                        buttonColor.addEventListener('input', () => {
+                            block.buttonColor = buttonColor.value;
+                            renderPreview();
+                            scheduleSave();
+                        });
+                        wrapper.appendChild(buttonColor);
+                    }
+
+                    if (block.type !== 'image') {
+                        wrapper.appendChild(alignRow);
+                    }
+
+                    blocksEditor.appendChild(wrapper);
+                }
+            }
+
+            function renderPreview() {
+                preview.innerHTML = '';
+                const backgroundColor = backgroundColorInput?.value || '#0b1220';
+                preview.style.background = backgroundColor;
+
+                const globalEffect = effectSelect.value || 'none';
+
+                const contentWrapper = document.createElement('div');
+                contentWrapper.className = 'builder-preview-content';
+
+                const titleText = siteTitleInput.value.trim();
+                if (titleText) {
+                    const titleEl = document.createElement('div');
+                    titleEl.textContent = titleText;
+                    titleEl.style.fontSize = '1.5rem';
+                    titleEl.style.fontWeight = '700';
+                    titleEl.style.marginBottom = '.75rem';
+                    titleEl.style.color = siteTitleColorInput.value || '#f8fafc';
+                    titleEl.style.textAlign = headerAlignInput.value || 'left';
+                    if (globalEffect === 'shadow') titleEl.classList.add('builder-effect-shadow');
+                    if (globalEffect === 'glow') titleEl.classList.add('builder-effect-glow');
+                    contentWrapper.appendChild(titleEl);
+                }
+
+                const headerText = headerInput.value.trim();
+                if (headerText || avatarInput.value.trim()) {
+                    const headerEl = document.createElement('div');
+                    headerEl.className = 'builder-preview-header';
+                    headerEl.style.textAlign = headerAlignInput.value || 'left';
+                    headerEl.style.color = headerColorInput.value || '#e5e7eb';
+                    if (globalEffect === 'shadow') headerEl.classList.add('builder-effect-shadow');
+                    if (globalEffect === 'glow') headerEl.classList.add('builder-effect-glow');
+
+                    const avatarUrl = avatarInput.value.trim();
+                    if (avatarUrl) {
+                        const avatar = document.createElement('img');
+                        avatar.className = 'builder-preview-avatar';
+                        avatar.src = avatarUrl;
+                        avatar.alt = 'Logo';
+                        headerEl.appendChild(avatar);
+                    }
+
+                    if (headerText) {
+                        const headerTextEl = document.createElement('div');
+                        headerTextEl.textContent = headerText;
+                        headerEl.appendChild(headerTextEl);
+                    }
+
+                    contentWrapper.appendChild(headerEl);
+                }
+
+                for (const block of blocks) {
+                    const el = renderPreviewBlock(block);
+                    contentWrapper.appendChild(el);
+                }
+                preview.appendChild(contentWrapper);
+
+                const footerText = footerInput.value.trim();
+                if (footerText) {
+                    const footerEl = document.createElement('div');
+                    footerEl.className = 'builder-preview-footer';
+                    footerEl.textContent = footerText;
+                    footerEl.style.textAlign = footerAlignInput.value || 'left';
+                    footerEl.style.color = footerColorInput.value || '#e5e7eb';
+                    if (globalEffect === 'shadow') footerEl.classList.add('builder-effect-shadow');
+                    if (globalEffect === 'glow') footerEl.classList.add('builder-effect-glow');
+                    footerEl.style.marginTop = 'auto';
+                    preview.appendChild(footerEl);
+                }
+            }
+
+            function renderPreviewBlock(block) {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'mb-2 builder-preview-block';
+                wrapper.dataset.blockId = block.id;
+                if (block.id === selectedBlockId) {
+                    wrapper.classList.add('is-selected');
+                }
+                wrapper.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    selectBlock(block.id);
+                });
+
+                const inner = document.createElement('div');
+                const align = block.align || 'left';
+                inner.style.textAlign = align;
+                if (block.color) inner.style.color = block.color;
+                if (block.effect === 'shadow') inner.classList.add('builder-effect-shadow');
+                if (block.effect === 'glow') inner.classList.add('builder-effect-glow');
+
+                switch (block.type) {
+                    case 'section': {
+                        const section = document.createElement('section');
+                        const h = document.createElement('h4');
+                        h.textContent = block.content || 'Секция';
+                        section.appendChild(h);
+                        inner.appendChild(section);
+                        break;
+                    }
+                    case 'heading': {
+                        const h = document.createElement('h3');
+                        h.textContent = block.content || 'Заголовок';
+                        inner.appendChild(h);
+                        break;
+                    }
+                    case 'text': {
+                        const p = document.createElement('p');
+                        p.textContent = block.content || 'Текст';
+                        inner.appendChild(p);
+                        break;
+                    }
+                    case 'image': {
+                        const img = document.createElement('img');
+                        img.src = block.content || 'https://placehold.co/600x300?text=Image';
+                        img.alt = '';
+                        img.className = 'img-fluid rounded';
+                        inner.appendChild(img);
+                        break;
+                    }
+                    case 'button': {
+                        const link = document.createElement('a');
+                        link.href = block.url || '#';
+                        link.target = '_blank';
+                        link.rel = 'noopener noreferrer';
+                        link.className = 'btn btn-primary';
+                        link.textContent = block.content || 'Кнопка';
+                        link.addEventListener('click', (event) => event.preventDefault());
+                        const py = block.paddingY ?? 8;
+                        const px = block.paddingX ?? 16;
+                        link.style.padding = `${py}px ${px}px`;
+                        link.style.background = block.buttonColor || '#2563eb';
+                        link.style.borderColor = block.buttonColor || '#2563eb';
+                        link.style.color = '#fff';
+                        if (block.effect === 'shadow') link.classList.add('builder-effect-shadow');
+                        if (block.effect === 'glow') link.classList.add('builder-effect-glow');
+                        inner.appendChild(link);
+                        break;
+                    }
+                }
+
+                wrapper.appendChild(inner);
+                return wrapper;
+            }
+
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+
+            function makeSlug(value) {
+                return (value || '')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9\s-]+/g, '')
+                    .trim()
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-');
+            }
+
+            function buildExportCss(backgroundColor) {
+                return `html, body { height: 100%; }
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 1.5rem;
+  background: ${backgroundColor || '#0b1220'};
+  color: #e5e7eb;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+header, footer { margin-bottom: 1rem; }
+footer { margin-top: auto; }
+main {
+  flex: 1 0 auto;
+  background: rgba(15, 23, 42, 0.9);
+  padding: 1.25rem;
+  border-radius: .75rem;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.7);
+}
+img { max-width: 100%; height: auto; display: block; margin: .75rem 0; border-radius: .5rem; }
+a.effect-shadow, .effect-shadow { box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45); }
+a.effect-glow, .effect-glow { box-shadow: 0 0 24px rgba(99, 102, 241, 0.65); }
+.site-title { font-size: 1.5rem; font-weight: 700; margin-bottom: .75rem; }
+.site-header { display: flex; align-items: center; gap: .5rem; padding: .75rem 1rem; border-radius: .25rem; background: rgba(15, 23, 42, 0.9); }
+.site-avatar { width: 72px; height: 72px; object-fit: cover; border-radius: 12px; border: 2px solid rgba(255,255,255,.4); box-shadow: 0 8px 20px rgba(0,0,0,.45); }
+a.button-link {
+  display: inline-block;
+  border-radius: 999px;
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(99, 102, 241, 0.6);
+}`;
+            }
+
+            function buildFinalHtml() {
+                const title = siteTitleInput.value || 'My site';
+                const titleColor = siteTitleColorInput.value || '#f8fafc';
+                const headerText = headerInput.value.trim();
+                const headerAlign = headerAlignInput.value || 'left';
+                const headerColor = headerColorInput.value || '#e5e7eb';
+                const footerText = footerInput.value.trim();
+                const footerAlign = footerAlignInput.value || 'left';
+                const footerColor = footerColorInput.value || '#e5e7eb';
+                const avatarUrl = avatarInput.value.trim();
+                const backgroundColor = backgroundColorInput?.value || '#0b1220';
+                const globalEffect = effectSelect.value || 'none';
+
+                const parts = [];
+
+                if (title) {
+                    const effectClass = globalEffect === 'shadow' ? 'effect-shadow' : (globalEffect === 'glow' ? 'effect-glow' : '');
+                    parts.push(`<div class="site-title ${effectClass}" style="text-align:${headerAlign};color:${escapeHtml(titleColor)}">${escapeHtml(title)}</div>`);
+                }
+
+                if (headerText || avatarUrl) {
+                    const effectClass = globalEffect === 'shadow' ? 'effect-shadow' : (globalEffect === 'glow' ? 'effect-glow' : '');
+                    const avatarHtml = avatarUrl ? `<img class="site-avatar" src="${escapeHtml(avatarUrl)}" alt="Logo" />` : '';
+                    const headerInner = headerText ? `<div>${escapeHtml(headerText)}</div>` : '';
+                    parts.push(`<header class="site-header ${effectClass}" style="text-align:${headerAlign};color:${escapeHtml(headerColor)}">${avatarHtml}${headerInner}</header>`);
+                }
+
+                parts.push('<main>');
+                for (const block of blocks) {
+                    const align = block.align || 'left';
+                    const alignStyle = align === 'left' ? '' : ` style="text-align:${align}"`;
+                    const blockColor = block.color ? ` color:${escapeHtml(block.color)};` : '';
+                    const effectClass = block.effect === 'shadow' ? 'effect-shadow' : (block.effect === 'glow' ? 'effect-glow' : '');
+                    switch (block.type) {
+                        case 'section':
+                            parts.push(`<div${alignStyle} class="${effectClass}" style="${blockColor}"><section><h3>${escapeHtml(block.content || 'Section')}</h3></section></div>`);
+                            break;
+                        case 'heading':
+                            parts.push(`<div${alignStyle} class="${effectClass}" style="${blockColor}"><h2>${escapeHtml(block.content || 'Heading')}</h2></div>`);
+                            break;
+                        case 'text':
+                            parts.push(`<div${alignStyle} class="${effectClass}" style="${blockColor}"><p>${escapeHtml(block.content || 'Text')}</p></div>`);
+                            break;
+                        case 'image':
+                            parts.push(`<div${alignStyle} class="${effectClass}"><img src="${escapeHtml(block.content || '')}" alt=""></div>`);
+                            break;
+                        case 'button': {
+                            const label = escapeHtml(block.content || 'Button');
+                            const url = escapeHtml(block.url || '#');
+                            const py = block.paddingY ?? 8;
+                            const px = block.paddingX ?? 16;
+                            const color = escapeHtml(block.buttonColor || '#2563eb');
+                            const effectClassButton = block.effect === 'shadow' ? 'effect-shadow' : (block.effect === 'glow' ? 'effect-glow' : '');
+                            parts.push(`<div${alignStyle}><a href="${url}" target="_blank" rel="noopener noreferrer" class="button-link ${effectClassButton}" style="padding:${py}px ${px}px;background:${color};color:#fff">${label}</a></div>`);
+                            break;
+                        }
+                    }
+                }
+                parts.push('</main>');
+
+                if (footerText) {
+                    const effectClass = globalEffect === 'shadow' ? 'effect-shadow' : (globalEffect === 'glow' ? 'effect-glow' : '');
+                    parts.push(`<footer class="${effectClass}" style="text-align:${footerAlign};color:${escapeHtml(footerColor)}"><div>${escapeHtml(footerText)}</div></footer>`);
+                }
+
+                const bodyContent = parts.join('\n');
+                const css = buildExportCss(backgroundColor);
+                const faviconTag = avatarUrl ? `<link rel="icon" href="${escapeHtml(avatarUrl)}" />` : '';
+
+                return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(title)}</title>
+  ${faviconTag}
+  <style>
+${css}
+  </style>
+</head>
+<body>
+${bodyContent}
+</body>
+</html>`;
+            }
+
+            async function publishSite() {
+                const titleText = siteTitleInput.value.trim();
+                const slug = makeSlug(titleText);
+                if (!slug) {
+                    setPublishStatus('Введите название сайта латиницей (например, coffee).', 'is-error');
+                    return;
+                }
+
+                if (generateOverlay) {
+                    if (generateOverlayText) generateOverlayText.textContent = 'Публикация...';
+                    generateOverlay.classList.remove('d-none');
+                }
+                setPublishStatus('Публикация... пожалуйста, подождите.', 'is-muted');
+
+                try {
+                    const html = buildFinalHtml();
+                    const publishResp = await fetch('/api/publish', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ slug, html })
+                    });
+                    if (!publishResp.ok) {
+                        const errText = await publishResp.text();
+                        throw new Error(errText || 'Ошибка публикации');
+                    }
+                    const data = await publishResp.json();
+                    const url = data.url || '';
+                    setPublishStatus('Готово! Ссылка на сайт:', 'is-success', url);
+                    showPublishModal(url);
+                } catch (err) {
+                    setPublishStatus(`Ошибка публикации: ${err.message || err}`, 'is-error');
+                } finally {
+                    if (generateOverlay) {
+                        if (generateOverlayText) generateOverlayText.textContent = 'Подождите...';
+                        setTimeout(() => generateOverlay.classList.add('d-none'), 700);
+                    }
+                }
+            }
+
+            function setPublishStatus(message, className, url) {
+                if (!publishStatus) return;
+                publishStatus.innerHTML = '';
+                publishStatus.className = `publish-status ${className || ''}`.trim();
+
+                const title = document.createElement('div');
+                title.className = 'publish-status-title';
+                title.textContent = message || '';
+                publishStatus.appendChild(title);
+
+                if (publishStatusLeft) {
+                    publishStatusLeft.innerHTML = publishStatus.innerHTML;
+                    publishStatusLeft.className = publishStatus.className;
+                }
+
+                if (url) {
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.className = 'publish-status-link';
+                    link.textContent = url;
+                    publishStatus.appendChild(link);
+
+                    const note = document.createElement('div');
+                    note.className = 'publish-status-note';
+                    note.textContent = 'Подождите пару минут, пока сайт загрузится.';
+                    publishStatus.appendChild(note);
+                }
+            }
+
+            function showPublishModal(url) {
+                if (!publishModal || !publishModalLink) return;
+                publishModalLink.href = url;
+                publishModalLink.textContent = url;
+                publishModal.classList.remove('d-none');
+            }
+
+            function scheduleSave() {
+                if (saveTimer) clearTimeout(saveTimer);
+                saveTimer = setTimeout(saveState, 300);
+            }
+
+            function saveState() {
+                const state = {
+                    siteTitle: siteTitleInput.value,
+                    siteTitleColor: siteTitleColorInput.value,
+                    headerText: headerInput.value,
+                    headerAlign: headerAlignInput.value,
+                    headerColor: headerColorInput.value,
+                    footerText: footerInput.value,
+                    footerAlign: footerAlignInput.value,
+                    footerColor: footerColorInput.value,
+                    avatarUrl: avatarInput.value,
+                    backgroundColor: backgroundColorInput.value,
+                    globalEffect: effectSelect.value,
+                    blocks
+                };
+                localStorage.setItem('builder_state', JSON.stringify(state));
+            }
+
+            function loadState() {
+                const raw = localStorage.getItem('builder_state');
+                if (!raw) return;
+                try {
+                    const state = JSON.parse(raw);
+                    siteTitleInput.value = state.siteTitle || '';
+                    siteTitleColorInput.value = state.siteTitleColor || '#f8fafc';
+                    headerInput.value = state.headerText || '';
+                    headerAlignInput.value = state.headerAlign || 'left';
+                    headerColorInput.value = state.headerColor || '#e5e7eb';
+                    footerInput.value = state.footerText || '';
+                    footerAlignInput.value = state.footerAlign || 'left';
+                    footerColorInput.value = state.footerColor || '#e5e7eb';
+                    avatarInput.value = state.avatarUrl || '';
+                    backgroundColorInput.value = state.backgroundColor || '#0b1220';
+                    effectSelect.value = state.globalEffect || 'none';
+                    blocks = Array.isArray(state.blocks) ? state.blocks : [];
+                    blockIdCounter = blocks.reduce((maxId, b) => Math.max(maxId, b.id || 0), 0) + 1;
+                    hadSavedState = true;
+                } catch {
+                    return;
+                }
+            }
+
+            function applyTemplate(key) {
+                const template = templates[key] || templates.blank;
+                siteTitleInput.value = template.title;
+                headerInput.value = template.header;
+                footerInput.value = template.footer;
+                blocks = template.blocks.map((b) => ({
+                    id: blockIdCounter++,
+                    type: b.type,
+                    content: b.content,
+                    align: b.align || 'left',
+                    color: b.color || '#e5e7eb',
+                    effect: b.effect || 'none',
+                    url: b.url,
+                    paddingY: b.paddingY,
+                    paddingX: b.paddingX,
+                    buttonColor: b.buttonColor
+                }));
+                renderEditors();
+                renderPreview();
+                scheduleSave();
+            }
+
+            function showTemplateModal() {
+                if (!templateModal) return;
+                templateModal.classList.remove('d-none');
+            }
+
+            function hideTemplateModal() {
+                if (!templateModal) return;
+                templateModal.classList.add('d-none');
+            }
+
+            function showContextMenu(x, y) {
+                if (!contextMenu) return;
+                contextMenu.style.left = `${x}px`;
+                contextMenu.style.top = `${y}px`;
+                contextMenu.classList.remove('d-none');
+                suppressContextClose = true;
+            }
+
+            function closeContextMenu() {
+                if (!contextMenu) return;
+                contextMenu.classList.add('d-none');
+                contextTargetId = null;
+            }
+
+            preview.addEventListener('click', () => selectBlock(null));
+
+            preview.addEventListener('contextmenu', (event) => {
+                const target = event.target.closest('.builder-preview-block');
+                if (target && target.dataset.blockId) {
+                    contextTargetId = Number(target.dataset.blockId);
+                } else {
+                    contextTargetId = null;
+                }
+            });
+
+            loadState();
+            renderEditors();
+            renderPreview();
+
+            if (!hadSavedState) {
+                showTemplateModal();
+            }
+        })();
+    </script>
+}
