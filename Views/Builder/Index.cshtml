@@ -96,6 +96,7 @@
                     <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="image">Добавить изображение</button>
                     <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="button">Добавить кнопку</button>
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-add-block="section">Добавить секцию</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-add-block="formspree">Добавить форму (Formspree)</button>
                 </div>
 
                 <div id="blocksEditor" class="builder-blocks-editor small"></div>
@@ -139,6 +140,7 @@
                     <button type="button" class="builder-context-item" data-context-add="image">Изображение</button>
                     <button type="button" class="builder-context-item" data-context-add="button">Кнопка</button>
                     <button type="button" class="builder-context-item" data-context-add="section">Секция</button>
+                    <button type="button" class="builder-context-item" data-context-add="formspree">Форма (Formspree)</button>
                     <div class="builder-context-divider"></div>
                     <button type="button" class="builder-context-item builder-context-danger" data-context-delete>Удалить блок</button>
                 </div>
@@ -732,6 +734,11 @@
                     block.content = 'https://placehold.co/800x400?text=Image';
                 }
 
+                if (type === 'formspree') {
+                    block.formId = 'YOUR_FORM_ID';
+                    block.submitLabel = 'Отправить';
+                }
+
                 if (insertAfterId) {
                     const index = blocks.findIndex(b => b.id === insertAfterId);
                     if (index >= 0) {
@@ -756,6 +763,7 @@
                     case 'image': return 'https://placehold.co/800x400?text=Image';
                     case 'button': return 'Кнопка';
                     case 'section': return 'Секция';
+                    case 'formspree': return '';
                     default: return '';
                 }
             }
@@ -767,6 +775,7 @@
                     case 'image': return 'Изображение';
                     case 'button': return 'Кнопка';
                     case 'section': return 'Секция';
+                    case 'formspree': return 'Форма (Formspree)';
                     default: return 'Блок';
                 }
             }
@@ -896,6 +905,35 @@
                             scheduleSave();
                         });
                         wrapper.appendChild(buttonColor);
+                    }
+
+                    if (block.type === 'formspree') {
+                        const formIdInput = document.createElement('input');
+                        formIdInput.className = 'form-control form-control-sm mb-2';
+                        formIdInput.value = block.formId || 'YOUR_FORM_ID';
+                        formIdInput.placeholder = 'Formspree ID (например: f/xxxxxx)';
+                        formIdInput.addEventListener('input', () => {
+                            block.formId = formIdInput.value;
+                            renderPreview();
+                            scheduleSave();
+                        });
+                        wrapper.appendChild(formIdInput);
+
+                        const submitLabelInput = document.createElement('input');
+                        submitLabelInput.className = 'form-control form-control-sm mb-2';
+                        submitLabelInput.value = block.submitLabel || 'Отправить';
+                        submitLabelInput.placeholder = 'Текст кнопки отправки';
+                        submitLabelInput.addEventListener('input', () => {
+                            block.submitLabel = submitLabelInput.value;
+                            renderPreview();
+                            scheduleSave();
+                        });
+                        wrapper.appendChild(submitLabelInput);
+
+                        const note = document.createElement('div');
+                        note.className = 'text-muted small mb-2';
+                        note.textContent = 'Форма отправляет POST на Formspree. Замените YOUR_FORM_ID перед публикацией.';
+                        wrapper.appendChild(note);
                     }
 
                     if (block.type !== 'image') {
@@ -1044,6 +1082,49 @@
                         inner.appendChild(link);
                         break;
                     }
+                    case 'formspree': {
+                        const form = document.createElement('form');
+                        const fid = block.formId || 'YOUR_FORM_ID';
+                        form.action = `https://formspree.io/${fid}`;
+                        form.method = 'POST';
+                        form.addEventListener('submit', (e) => {
+                            e.preventDefault();
+                            alert('Это превью формы. При публикации убедитесь, что заменили YOUR_FORM_ID на реальный ID Formspree.');
+                        });
+
+                        const nameInput = document.createElement('input');
+                        nameInput.className = 'form-control form-control-sm mb-2';
+                        nameInput.placeholder = 'Ваше имя';
+                        nameInput.name = 'name';
+                        form.appendChild(nameInput);
+
+                        const emailInput = document.createElement('input');
+                        emailInput.className = 'form-control form-control-sm mb-2';
+                        emailInput.placeholder = 'Ваш email';
+                        emailInput.name = 'email';
+                        form.appendChild(emailInput);
+
+                        const subjectInput = document.createElement('input');
+                        subjectInput.className = 'form-control form-control-sm mb-2';
+                        subjectInput.placeholder = 'Тема';
+                        subjectInput.name = 'subject';
+                        form.appendChild(subjectInput);
+
+                        const msg = document.createElement('textarea');
+                        msg.className = 'form-control form-control-sm mb-2';
+                        msg.placeholder = 'Сообщение';
+                        msg.name = 'message';
+                        form.appendChild(msg);
+
+                        const submit = document.createElement('button');
+                        submit.type = 'submit';
+                        submit.className = 'btn btn-primary btn-sm';
+                        submit.textContent = block.submitLabel || 'Отправить';
+                        form.appendChild(submit);
+
+                        inner.appendChild(form);
+                        break;
+                    }
                 }
 
                 wrapper.appendChild(inner);
@@ -1150,6 +1231,18 @@ a.button-link {
                         case 'image':
                             parts.push(`<div${alignStyle} class="${effectClass}"><img src="${escapeHtml(block.content || '')}" alt=""></div>`);
                             break;
+                        case 'formspree': {
+                            const fid = escapeHtml(block.formId || 'YOUR_FORM_ID');
+                            const submitLabel = escapeHtml(block.submitLabel || 'Отправить');
+                            parts.push(`<div${alignStyle} class="${effectClass}"><form action="https://formspree.io/${fid}" method="POST">` +
+                                `<input type="text" name="name" placeholder="Ваше имя" />` +
+                                `<input type="email" name="_replyto" placeholder="Ваш email" />` +
+                                `<input type="text" name="subject" placeholder="Тема" />` +
+                                `<textarea name="message" placeholder="Сообщение"></textarea>` +
+                                `<div style="margin-top:.5rem"><button type="submit" style="background:${escapeHtml(block.buttonColor || '#2563eb')};color:#fff;border:none;padding:8px 16px;border-radius:6px">${submitLabel}</button></div>` +
+                                `</form></div>`);
+                            break;
+                        }
                         case 'button': {
                             const label = escapeHtml(block.content || 'Button');
                             const url = escapeHtml(block.url || '#');
