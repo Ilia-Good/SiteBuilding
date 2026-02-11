@@ -1,7 +1,8 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using SiteBuilder.Data;
 using SiteBuilder.Middleware;
@@ -41,16 +42,19 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("ContactApi", policy =>
     {
-        if (corsOrigins.Count == 0)
-        {
-            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
-            return;
-        }
-
-        policy.WithOrigins(corsOrigins.ToArray())
+        // Public contact endpoint for static published sites (GitHub Pages/custom domains).
+        // Anti-spam/rate-limits are enforced server-side.
+        policy.AllowAnyOrigin()
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
+});
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
 });
 
 var googleClientId = builder.Configuration["GOOGLE_CLIENT_ID"];
@@ -70,6 +74,8 @@ builder.Services
     {
         options.LoginPath = "/account/login";
         options.LogoutPath = "/account/logout";
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     })
     .AddGoogle(options =>
     {
@@ -77,8 +83,16 @@ builder.Services
         options.ClientSecret = googleClientSecret;
         options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
         options.SaveTokens = false;
+        options.CorrelationCookie.SameSite = SameSiteMode.None;
+        options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.Always;
         options.Events = new OAuthEvents
         {
+            OnRemoteFailure = context =>
+            {
+                context.HandleResponse();
+                context.Response.Redirect("/account/login-failed");
+                return Task.CompletedTask;
+            },
             OnCreatingTicket = async context =>
             {
                 var email = context.Principal?.FindFirstValue(ClaimTypes.Email)
@@ -140,6 +154,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("ContactApi");
@@ -156,8 +171,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
-
 app.Run();
-
-
-

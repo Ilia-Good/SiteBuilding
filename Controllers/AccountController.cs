@@ -22,4 +22,11 @@ public class AccountController : Controller
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         return RedirectToAction("Index", "Home");
     }
+
+    [HttpGet("account/login-failed")]
+    public IActionResult LoginFailed()
+    {
+        ViewData["Title"] = "Ошибка входа";
+        return View();
+    }
 }
