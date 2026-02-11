@@ -25,6 +25,13 @@
     </div>
 }
 
+@if (TempData["SitesError"] is string siteError && !string.IsNullOrWhiteSpace(siteError))
+{
+    <div class="alert alert-danger">
+        @siteError
+    </div>
+}
+
 @if (Model.Sites.Count == 0)
 {
     <div class="card shadow-sm">

@@ -142,6 +142,23 @@ public class PublishController : ControllerBase
             }
 
             var site = await _db.Sites.FirstOrDefaultAsync(s => s.OwnerUserId == userId && s.SiteName == slug);
+            if (site is not null && !site.IsPaid && site.ExpiresAt <= now)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, "Пробный период истёк. Отметьте сайт как оплаченный.");
+            }
+
+            var today = GetUtcDate(now);
+            SiteDailyUsage? usage = null;
+            if (site is not null)
+            {
+                usage = await _db.SiteDailyUsages.FirstOrDefaultAsync(u => u.SiteId == site.Id && u.Date == today);
+            }
+
+            if (usage is not null && usage.EditsCount >= MaxEditsPerDayPerSite)
+            {
+                return BadRequest($"Лимит изменений на сегодня: {MaxEditsPerDayPerSite}.");
+            }
+
             if (site is null)
             {
                 var totalCount = await _db.Sites.CountAsync(s => s.OwnerUserId == userId);
@@ -149,35 +166,12 @@ public class PublishController : ControllerBase
                 {
                     return BadRequest($"Лимит сайтов: {MaxSitesPerUser}. Удалите один из своих сайтов, чтобы создать новый.");
                 }
-
-                site = new Site
-                {
-                    Id = Guid.NewGuid(),
-                    OwnerUserId = userId,
-                    SiteName = slug,
-                    CreatedAt = now,
-                    ExpiresAt = now.AddHours(TrialHours),
-                    IsPaid = false,
-                    GithubPath = $"sites/{slug}/index.html"
-                };
-
-                _db.Sites.Add(site);
-                await _db.SaveChangesAsync();
-            }
-            else if (!site.IsPaid && site.ExpiresAt <= now)
-            {
-                return StatusCode(StatusCodes.Status403Forbidden, "Пробный период истёк. Отметьте сайт как оплаченный.");
             }
 
-            var today = GetUtcDate(now);
-            var usage = await _db.SiteDailyUsages.FirstOrDefaultAsync(u => u.SiteId == site.Id && u.Date == today);
-            if (usage is not null && usage.EditsCount >= MaxEditsPerDayPerSite)
-            {
-                return BadRequest($"Лимит изменений на сегодня: {MaxEditsPerDayPerSite}.");
-            }
+            var siteId = site?.Id ?? Guid.NewGuid();
 
             var html = builtFromState
-                ? BuildFinalHtml(request.State!, site.Id, BuildApiBaseUrl())
+                ? BuildFinalHtml(request.State!, siteId, BuildApiBaseUrl())
                 : request.Html ?? string.Empty;
             if (string.IsNullOrWhiteSpace(html))
             {
@@ -257,7 +251,25 @@ public class PublishController : ControllerBase
                 return StatusCode((int)putResp.StatusCode, err);
             }
 
-            site.GithubPath = filePath;
+            if (site is null)
+            {
+                site = new Site
+                {
+                    Id = siteId,
+                    OwnerUserId = userId,
+                    SiteName = slug,
+                    CreatedAt = now,
+                    ExpiresAt = now.AddHours(TrialHours),
+                    IsPaid = false,
+                    GithubPath = filePath
+                };
+                _db.Sites.Add(site);
+            }
+            else
+            {
+                site.GithubPath = filePath;
+            }
+
             site.PublishedAt = now;
             site.IsActive = true;
 
@@ -266,7 +278,7 @@ public class PublishController : ControllerBase
                 usage = new SiteDailyUsage
                 {
                     Id = Guid.NewGuid(),
-                    SiteId = site.Id,
+                    SiteId = siteId,
                     Date = today,
                     EditsCount = 1
                 };
@@ -631,8 +643,12 @@ a.button-link {{
 
     private static int GetTotalTextLength(string html)
     {
+        // Ignore script/style payload when validating human-visible text volume.
+        html = Regex.Replace(html, "(?is)<script.*?>.*?</script>", " ");
+        html = Regex.Replace(html, "(?is)<style.*?>.*?</style>", " ");
         var text = Regex.Replace(html, "<[^>]+>", " ");
         text = WebUtility.HtmlDecode(text);
+        text = Regex.Replace(text, "\\s+", " ");
         return text.Trim().Length;
     }
 

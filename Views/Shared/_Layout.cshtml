@@ -28,33 +28,40 @@
 </head>
 <body>
     <header>
-        <nav class="navbar app-navbar mb-3">
+        <nav class="navbar navbar-expand-lg app-navbar mb-3">
             <div class="container-fluid">
                 <a class="navbar-brand app-navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
                     <span class="app-logo-dot"></span>
                     SiteBuilding
                 </a>
-                <div class="app-navbar-links d-none d-lg-flex">
-                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
-                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="Builder" asp-action="Index">Конструктор</a>
-                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="PublicSites" asp-action="Index">Мини-сайты</a>
-                    <a class="nav-link app-nav-btn" asp-area="" asp-controller="Sites" asp-action="Index">Мои сайты</a>
-                </div>
-                <div class="app-navbar-actions d-flex align-items-center gap-2">
-                    @if (User?.Identity?.IsAuthenticated ?? false)
-                    {
-                        var email = User.FindFirstValue(ClaimTypes.Email);
-                        var nick = string.IsNullOrWhiteSpace(email) ? "друг" : email.Split('@')[0];
-                        @await Component.InvokeAsync("UserSitesMenu")
-                        <span class="app-user-email">Привет, @nick</span>
-                        <form method="post" asp-controller="Account" asp-action="Logout">
-                            <button type="submit" class="btn btn-sm btn-outline-light app-nav-btn">Выйти</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <a class="btn btn-sm btn-outline-light app-nav-btn" asp-controller="Account" asp-action="Login">Войти через Google</a>
-                    }
+                <button class="navbar-toggler app-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#appMainNav"
+                        aria-controls="appMainNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse app-navbar-collapse" id="appMainNav">
+                    <div class="app-navbar-links d-flex flex-column flex-lg-row">
+                        <a class="nav-link app-nav-btn" asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
+                        <a class="nav-link app-nav-btn" asp-area="" asp-controller="Builder" asp-action="Index">Конструктор</a>
+                        <a class="nav-link app-nav-btn" asp-area="" asp-controller="PublicSites" asp-action="Index">Мини-сайты</a>
+                        <a class="nav-link app-nav-btn" asp-area="" asp-controller="Sites" asp-action="Index">Мои сайты</a>
+                    </div>
+                    <div class="app-navbar-actions d-flex align-items-stretch align-items-lg-center gap-2">
+                        @if (User?.Identity?.IsAuthenticated ?? false)
+                        {
+                            var email = User.FindFirstValue(ClaimTypes.Email);
+                            var nick = string.IsNullOrWhiteSpace(email) ? "друг" : email.Split('@')[0];
+                            @await Component.InvokeAsync("UserSitesMenu")
+                            <span class="app-user-email">Привет, @nick</span>
+                            <form method="post" asp-controller="Account" asp-action="Logout">
+                                <button type="submit" class="btn btn-outline-light app-nav-btn">Выйти</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a class="btn btn-outline-light app-nav-btn" asp-controller="Account" asp-action="Login">Войти через Google</a>
+                        }
+                    </div>
                 </div>
             </div>
         </nav>

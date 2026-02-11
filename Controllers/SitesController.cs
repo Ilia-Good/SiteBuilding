@@ -13,10 +13,12 @@ public class SitesController : Controller
 {
     private const int MaxSitesPerUser = 3;
     private readonly ApplicationDbContext _db;
+    private readonly ILogger<SitesController> _logger;
 
-    public SitesController(ApplicationDbContext db)
+    public SitesController(ApplicationDbContext db, ILogger<SitesController> logger)
     {
         _db = db;
+        _logger = logger;
     }
 
     [HttpGet("sites")]
@@ -64,12 +66,17 @@ public class SitesController : Controller
             return NotFound();
         }
 
-        var usages = _db.SiteDailyUsages.Where(u => u.SiteId == site.Id);
-        _db.SiteDailyUsages.RemoveRange(usages);
-        var messages = _db.ContactMessages.Where(m => m.SiteId == site.Id);
-        _db.ContactMessages.RemoveRange(messages);
-        _db.Sites.Remove(site);
-        await _db.SaveChangesAsync();
+        try
+        {
+            // Dependent rows are removed by cascade FK rules.
+            _db.Sites.Remove(site);
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete site {SiteId} for user {UserId}", id, userId);
+            TempData["SitesError"] = "Не удалось удалить сайт. Попробуйте позже.";
+        }
 
         return RedirectToAction("Index");
     }
@@ -91,19 +98,27 @@ public class SitesController : Controller
             return NotFound();
         }
 
-        var messages = await _db.ContactMessages
-            .Where(m => m.SiteId == siteId && !m.IsSpam)
-            .OrderByDescending(m => m.CreatedAt)
-            .AsNoTracking()
-            .ToListAsync();
-
         ViewData["Title"] = $"Сообщения: {site.SiteName}";
         var model = new SiteMessagesViewModel
         {
             SiteId = site.Id,
             SiteName = site.SiteName,
-            Messages = messages
+            Messages = Array.Empty<ContactMessage>()
         };
+
+        try
+        {
+            model.Messages = await _db.ContactMessages
+                .Where(m => m.SiteId == siteId && !m.IsSpam)
+                .OrderByDescending(m => m.CreatedAt)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load contact messages for site {SiteId}", siteId);
+            model.ErrorMessage = "Не удалось загрузить сообщения. Обновите страницу позже.";
+        }
 
         return View(model);
     }

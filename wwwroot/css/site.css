@@ -76,11 +76,27 @@ body {
   backdrop-filter: blur(12px);
 }
 
+.app-navbar-toggler {
+  border-color: rgba(148, 163, 184, 0.6);
+}
+
+.app-navbar-toggler:focus {
+  box-shadow: 0 0 0 .2rem rgba(96, 165, 250, 0.35);
+}
+
+.app-navbar-toggler .navbar-toggler-icon {
+  filter: invert(1) brightness(1.1);
+}
+
 .app-navbar-brand {
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 0.35rem;
+}
+
+.app-navbar-collapse {
+  margin-top: .75rem;
 }
 
 .app-logo-dot {
@@ -91,12 +107,53 @@ body {
   box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
 }
 
+.app-navbar-links {
+  gap: .35rem;
+}
+
 .app-navbar-links .nav-link {
-  color: #9ca3af;
+  color: #d1d5db;
+  border-radius: .6rem;
+  padding: .5rem .8rem;
 }
 
 .app-navbar-links .nav-link:hover {
+  color: #f8fafc;
+  background: rgba(148, 163, 184, 0.16);
+}
+
+.app-navbar-actions {
+  margin-top: .8rem;
+  flex-direction: column;
+}
+
+.app-nav-btn {
+  min-height: 40px;
+  font-size: .95rem;
+  font-weight: 500;
+}
+
+.app-user-email {
   color: #e5e7eb;
+  align-self: center;
+  white-space: nowrap;
+}
+
+@media (min-width: 992px) {
+  .app-navbar-collapse {
+    margin-top: 0;
+  }
+
+  .app-navbar-links {
+    margin-left: 1rem;
+  }
+
+  .app-navbar-actions {
+    margin-left: auto;
+    margin-top: 0;
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 /* Cards + buttons */
@@ -194,4 +251,31 @@ body {
   margin-top: 0.4rem;
   font-size: 0.85rem;
   color: #cbd5f5;
+}
+
+/* Better contrast on dark theme */
+.text-muted,
+.form-text {
+  color: #b8c0ce !important;
+}
+
+.card,
+.card-body,
+.card-title,
+.card-text,
+th,
+td,
+label,
+p,
+li {
+  color: #e5e7eb;
+}
+
+.table {
+  --bs-table-color: #e5e7eb;
+  --bs-table-bg: transparent;
+  --bs-table-striped-color: #e5e7eb;
+  --bs-table-striped-bg: rgba(148, 163, 184, 0.08);
+  --bs-table-hover-color: #f8fafc;
+  --bs-table-hover-bg: rgba(96, 165, 250, 0.12);
 }

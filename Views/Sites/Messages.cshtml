@@ -11,6 +11,13 @@
     <a class="btn btn-outline-light" asp-controller="Sites" asp-action="Index">Назад к сайтам</a>
 </div>
 
+@if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
+{
+    <div class="alert alert-warning">
+        @Model.ErrorMessage
+    </div>
+}
+
 @if (Model.Messages.Count == 0)
 {
     <div class="card shadow-sm">
