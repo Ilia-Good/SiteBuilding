@@ -12,6 +12,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
     public DbSet<Site> Sites => Set<Site>();
     public DbSet<SiteDailyUsage> SiteDailyUsages => Set<SiteDailyUsage>();
+    public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -46,5 +47,16 @@ public class ApplicationDbContext : DbContext
             .HasMany(s => s.DailyUsages)
             .WithOne(u => u.Site!)
             .HasForeignKey(u => u.SiteId);
+
+        modelBuilder.Entity<ContactMessage>()
+            .HasIndex(m => new { m.SiteId, m.CreatedAt });
+
+        modelBuilder.Entity<ContactMessage>()
+            .HasIndex(m => new { m.SiteId, m.SenderIp, m.CreatedAt });
+
+        modelBuilder.Entity<Site>()
+            .HasMany(s => s.ContactMessages)
+            .WithOne(m => m.Site!)
+            .HasForeignKey(m => m.SiteId);
     }
 }

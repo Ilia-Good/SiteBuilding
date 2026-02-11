@@ -18,6 +18,41 @@ builder.Services.AddHttpClient();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
 
+var corsOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+var explicitOrigin = builder.Configuration["ContactApi:AllowedOrigin"];
+if (!string.IsNullOrWhiteSpace(explicitOrigin))
+{
+    corsOrigins.Add(explicitOrigin.Trim().TrimEnd('/'));
+}
+
+var pagesBaseUrl = builder.Configuration["GitHubPublish:PagesBaseUrl"];
+if (Uri.TryCreate(pagesBaseUrl, UriKind.Absolute, out var pagesUri))
+{
+    corsOrigins.Add($"{pagesUri.Scheme}://{pagesUri.Host}");
+}
+
+if (builder.Environment.IsDevelopment())
+{
+    corsOrigins.Add("https://localhost:5001");
+    corsOrigins.Add("http://localhost:5000");
+}
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ContactApi", policy =>
+    {
+        if (corsOrigins.Count == 0)
+        {
+            policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+            return;
+        }
+
+        policy.WithOrigins(corsOrigins.ToArray())
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var googleClientId = builder.Configuration["GOOGLE_CLIENT_ID"];
 var googleClientSecret = builder.Configuration["GOOGLE_CLIENT_SECRET"];
 if (string.IsNullOrWhiteSpace(googleClientId) || string.IsNullOrWhiteSpace(googleClientSecret))
@@ -107,6 +142,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+app.UseCors("ContactApi");
 
 app.UseAuthentication();
 app.UseAuthorization();

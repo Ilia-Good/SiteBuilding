@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SiteBuilder.Data;
+using SiteBuilder.Models;
 using SiteBuilder.ViewModels;
 
 namespace SiteBuilder.Controllers;
@@ -65,9 +66,45 @@ public class SitesController : Controller
 
         var usages = _db.SiteDailyUsages.Where(u => u.SiteId == site.Id);
         _db.SiteDailyUsages.RemoveRange(usages);
+        var messages = _db.ContactMessages.Where(m => m.SiteId == site.Id);
+        _db.ContactMessages.RemoveRange(messages);
         _db.Sites.Remove(site);
         await _db.SaveChangesAsync();
 
         return RedirectToAction("Index");
+    }
+
+    [HttpGet("sites/messages/{siteId:guid}")]
+    public async Task<IActionResult> Messages(Guid siteId)
+    {
+        var userIdRaw = User.FindFirstValue("app_user_id");
+        if (!Guid.TryParse(userIdRaw, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var site = await _db.Sites
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == siteId && s.OwnerUserId == userId);
+        if (site is null)
+        {
+            return NotFound();
+        }
+
+        var messages = await _db.ContactMessages
+            .Where(m => m.SiteId == siteId && !m.IsSpam)
+            .OrderByDescending(m => m.CreatedAt)
+            .AsNoTracking()
+            .ToListAsync();
+
+        ViewData["Title"] = $"Сообщения: {site.SiteName}";
+        var model = new SiteMessagesViewModel
+        {
+            SiteId = site.Id,
+            SiteName = site.SiteName,
+            Messages = messages
+        };
+
+        return View(model);
     }
 }

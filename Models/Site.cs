@@ -30,4 +30,5 @@ public class Site
     public ApplicationUser? Owner { get; set; }
 
     public ICollection<SiteDailyUsage> DailyUsages { get; set; } = new List<SiteDailyUsage>();
+    public ICollection<ContactMessage> ContactMessages { get; set; } = new List<ContactMessage>();
 }

@@ -1,0 +1,51 @@
+@model SiteBuilder.ViewModels.SiteMessagesViewModel
+@{
+    ViewData["Title"] = $"Сообщения: {Model.SiteName}";
+}
+
+<div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <div>
+        <h1 class="h4 mb-1">Сообщения сайта: @Model.SiteName</h1>
+        <p class="text-muted mb-0">Сортировка: новые сверху.</p>
+    </div>
+    <a class="btn btn-outline-light" asp-controller="Sites" asp-action="Index">Назад к сайтам</a>
+</div>
+
+@if (Model.Messages.Count == 0)
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            Пока нет сообщений с формы.
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th>Имя</th>
+                        <th>Email</th>
+                        <th>Сообщение</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var m in Model.Messages)
+                {
+                    <tr>
+                        <td>@m.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>@m.SenderName</td>
+                        <td>@m.SenderEmail</td>
+                        <td style="max-width:420px; white-space:pre-wrap">@m.MessageText</td>
+                        <td>@m.SenderIp</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -134,40 +134,6 @@ public class PublishController : ControllerBase
             }
 
             var builtFromState = request.State is not null;
-            var formEndpoint = ResolveFormEndpoint(user);
-            var hasContactForm = builtFromState && (request.State?.Blocks?.Any(b => NormalizeType(b.Type) == "contactForm") ?? false);
-            if (hasContactForm && string.IsNullOrWhiteSpace(formEndpoint))
-            {
-                return BadRequest("Для формы обратной связи сначала укажите Formspree endpoint в настройках конструктора.");
-            }
-
-            var html = builtFromState
-                ? BuildFinalHtml(request.State!, formEndpoint ?? string.Empty)
-                : request.Html ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(html))
-            {
-                return BadRequest("Пустой HTML не может быть опубликован.");
-            }
-
-            if (html.Length > MaxHtmlLength)
-            {
-                return BadRequest("HTML слишком большой. Уменьшите контент и попробуйте снова.");
-            }
-
-            if (!builtFromState)
-            {
-                html = StripScriptTags(html);
-            }
-
-            if (GetTotalTextLength(html) > MaxTotalTextLength)
-            {
-                return BadRequest("Слишком много текста. Укоротите блоки и попробуйте снова.");
-            }
-
-            if (GetMaxImageUrlLength(html) > MaxImageUrlLength)
-            {
-                return BadRequest("Слишком длинный URL изображения. Укоротите ссылку.");
-            }
 
             var existingWithName = await _db.Sites.FirstOrDefaultAsync(s => s.SiteName == slug);
             if (existingWithName is not null && existingWithName.OwnerUserId != userId)
@@ -208,6 +174,34 @@ public class PublishController : ControllerBase
             if (usage is not null && usage.EditsCount >= MaxEditsPerDayPerSite)
             {
                 return BadRequest($"Лимит изменений на сегодня: {MaxEditsPerDayPerSite}.");
+            }
+
+            var html = builtFromState
+                ? BuildFinalHtml(request.State!, site.Id, BuildApiBaseUrl())
+                : request.Html ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(html))
+            {
+                return BadRequest("Пустой HTML не может быть опубликован.");
+            }
+
+            if (html.Length > MaxHtmlLength)
+            {
+                return BadRequest("HTML слишком большой. Уменьшите контент и попробуйте снова.");
+            }
+
+            if (!builtFromState)
+            {
+                html = StripScriptTags(html);
+            }
+
+            if (GetTotalTextLength(html) > MaxTotalTextLength)
+            {
+                return BadRequest("Слишком много текста. Укоротите блоки и попробуйте снова.");
+            }
+
+            if (GetMaxImageUrlLength(html) > MaxImageUrlLength)
+            {
+                return BadRequest("Слишком длинный URL изображения. Укоротите ссылку.");
             }
 
             var owner = _configuration["GitHubPublish:Owner"] ?? "Ilia-Good";
@@ -300,38 +294,18 @@ public class PublishController : ControllerBase
         return Regex.IsMatch(slug, "^[a-z0-9-]+$");
     }
 
-    private static string? ResolveFormEndpoint(ApplicationUser user)
+    private string BuildApiBaseUrl()
     {
-        var endpoint = user.FormEndpoint?.Trim();
-        if (string.IsNullOrWhiteSpace(endpoint))
+        var configured = _configuration["ContactApi:BaseUrl"];
+        if (!string.IsNullOrWhiteSpace(configured))
         {
-            return null;
+            return configured.TrimEnd('/');
         }
 
-        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var parsed))
-        {
-            return null;
-        }
-
-        if (!string.Equals(parsed.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        if (!string.Equals(parsed.Host, "formspree.io", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        if (!parsed.AbsolutePath.StartsWith("/f/", StringComparison.OrdinalIgnoreCase))
-        {
-            return null;
-        }
-
-        return endpoint;
+        return $"{Request.Scheme}://{Request.Host.Value}";
     }
 
-    private static string BuildFinalHtml(BuilderStateRequest state, string formEndpoint)
+    private static string BuildFinalHtml(BuilderStateRequest state, Guid siteId, string apiBaseUrl)
     {
         var title = state.SiteTitle?.Trim();
         if (string.IsNullOrWhiteSpace(title))
@@ -389,7 +363,7 @@ public class PublishController : ControllerBase
         html.AppendLine("  <main>");
         foreach (var block in state.Blocks ?? [])
         {
-            AppendBlockHtml(html, block, formEndpoint);
+            AppendBlockHtml(html, block, siteId);
         }
         html.AppendLine("  </main>");
 
@@ -408,10 +382,16 @@ public class PublishController : ControllerBase
         html.AppendLine("        if (success) success.hidden = true;");
         html.AppendLine("        if (error) error.hidden = true;");
         html.AppendLine("        try {");
-        html.AppendLine("          var resp = await fetch(form.action, {");
+        html.AppendLine($"          var resp = await fetch('{EscapeHtml(apiBaseUrl)}/api/contact/send', {{");
         html.AppendLine("            method: 'POST',");
-        html.AppendLine("            body: new FormData(form),");
-        html.AppendLine("            headers: { 'Accept': 'application/json' }");
+        html.AppendLine("            headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },");
+        html.AppendLine("            body: JSON.stringify({");
+        html.AppendLine("              siteId: form.dataset.siteId,");
+        html.AppendLine("              name: form.querySelector('[name=\"name\"]').value,");
+        html.AppendLine("              email: form.querySelector('[name=\"email\"]').value,");
+        html.AppendLine("              message: form.querySelector('[name=\"message\"]').value,");
+        html.AppendLine("              websiteField: form.querySelector('[name=\"websiteField\"]').value");
+        html.AppendLine("            })");
         html.AppendLine("          });");
         html.AppendLine("          if (!resp.ok) throw new Error('send_failed');");
         html.AppendLine("          form.reset();");
@@ -428,7 +408,7 @@ public class PublishController : ControllerBase
         return html.ToString();
     }
 
-    private static void AppendBlockHtml(StringBuilder html, BuilderBlockRequest block, string formEndpoint)
+    private static void AppendBlockHtml(StringBuilder html, BuilderBlockRequest block, Guid siteId)
     {
         var type = NormalizeType(block.Type);
         if (string.IsNullOrWhiteSpace(type))
@@ -470,14 +450,15 @@ public class PublishController : ControllerBase
             {
                 var submitLabel = EscapeHtml(block.SubmitLabel ?? "Отправить");
                 html.AppendLine($"    <div class=\"contact-form-shell {effectClass}\" style=\"text-align:{align};\">");
-                html.AppendLine($"      <form class=\"sb-contact-form\" action=\"{EscapeHtml(formEndpoint)}\" method=\"POST\">");
+                html.AppendLine($"      <form class=\"sb-contact-form\" data-site-id=\"{siteId}\">");
                 html.AppendLine("        <input type=\"text\" name=\"name\" placeholder=\"Ваше имя\" required>");
                 html.AppendLine("        <input type=\"email\" name=\"email\" placeholder=\"Ваш email\" required>");
                 html.AppendLine("        <textarea name=\"message\" placeholder=\"Сообщение\" rows=\"5\" required></textarea>");
+                html.AppendLine("        <input type=\"text\" name=\"websiteField\" autocomplete=\"off\" tabindex=\"-1\" class=\"sb-hp\">");
                 html.AppendLine($"        <button type=\"submit\">{submitLabel}</button>");
                 html.AppendLine("      </form>");
-                html.AppendLine("      <div class=\"sb-contact-success\" hidden>Сообщение отправлено</div>");
-                html.AppendLine("      <div class=\"sb-contact-error\" hidden>Не удалось отправить сообщение. Попробуйте позже.</div>");
+                html.AppendLine("      <div class=\"sb-contact-success\" hidden>So beautiful that it went</div>");
+                html.AppendLine("      <div class=\"sb-contact-error\" hidden>Wrong. Come back later.</div>");
                 html.AppendLine("    </div>");
                 break;
             }
@@ -609,6 +590,14 @@ a.button-link {{
   background: linear-gradient(135deg, #2563eb, #22c55e);
   color: #fff;
   cursor: pointer;
+}}
+.sb-hp {{
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
 }}
 .sb-contact-success,
 .sb-contact-error {{

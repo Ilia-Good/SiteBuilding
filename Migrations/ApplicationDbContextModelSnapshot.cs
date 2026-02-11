@@ -100,6 +100,53 @@ namespace SiteBuilder.Migrations
                     b.ToTable("Sites");
                 });
 
+            modelBuilder.Entity("SiteBuilder.Models.ContactMessage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsSpam")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MessageText")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("SenderEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("SenderIp")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("SenderName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<Guid>("SiteId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SiteOwnerUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SiteId", "CreatedAt");
+
+                    b.HasIndex("SiteId", "SenderIp", "CreatedAt");
+
+                    b.ToTable("ContactMessages");
+                });
+
             modelBuilder.Entity("SiteBuilder.Models.SiteDailyUsage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -134,6 +181,17 @@ namespace SiteBuilder.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("SiteBuilder.Models.ContactMessage", b =>
+                {
+                    b.HasOne("SiteBuilder.Models.Site", "Site")
+                        .WithMany("ContactMessages")
+                        .HasForeignKey("SiteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Site");
+                });
+
             modelBuilder.Entity("SiteBuilder.Models.SiteDailyUsage", b =>
                 {
                     b.HasOne("SiteBuilder.Models.Site", "Site")
@@ -152,6 +210,8 @@ namespace SiteBuilder.Migrations
 
             modelBuilder.Entity("SiteBuilder.Models.Site", b =>
                 {
+                    b.Navigation("ContactMessages");
+
                     b.Navigation("DailyUsages");
                 });
 #pragma warning restore 612, 618
