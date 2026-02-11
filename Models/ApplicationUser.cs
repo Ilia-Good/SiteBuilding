@@ -15,6 +15,9 @@ public class ApplicationUser
     [MaxLength(128)]
     public string GoogleId { get; set; } = string.Empty;
 
+    [MaxLength(300)]
+    public string? FormEndpoint { get; set; }
+
     public DateTime CreatedAt { get; set; }
 
     public ICollection<Site> Sites { get; set; } = new List<Site>();

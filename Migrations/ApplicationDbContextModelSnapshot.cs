@@ -36,6 +36,10 @@ namespace SiteBuilder.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<string>("FormEndpoint")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
                     b.Property<string>("GoogleId")
                         .IsRequired()
                         .HasMaxLength(128)

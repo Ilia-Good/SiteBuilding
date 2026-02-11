@@ -96,7 +96,7 @@
                     <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="image">Добавить изображение</button>
                     <button type="button" class="btn btn-outline-primary btn-sm" data-add-block="button">Добавить кнопку</button>
                     <button type="button" class="btn btn-outline-secondary btn-sm" data-add-block="section">Добавить секцию</button>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" data-add-block="formspree">Добавить форму (Formspree)</button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-add-block="contactForm">Добавить форму</button>
                 </div>
 
                 <div id="blocksEditor" class="builder-blocks-editor small"></div>
@@ -140,7 +140,7 @@
                     <button type="button" class="builder-context-item" data-context-add="image">Изображение</button>
                     <button type="button" class="builder-context-item" data-context-add="button">Кнопка</button>
                     <button type="button" class="builder-context-item" data-context-add="section">Секция</button>
-                    <button type="button" class="builder-context-item" data-context-add="formspree">Форма (Formspree)</button>
+                    <button type="button" class="builder-context-item" data-context-add="contactForm">Форма</button>
                     <div class="builder-context-divider"></div>
                     <button type="button" class="builder-context-item builder-context-danger" data-context-delete>Удалить блок</button>
                 </div>
@@ -734,8 +734,7 @@
                     block.content = 'https://placehold.co/800x400?text=Image';
                 }
 
-                if (type === 'formspree') {
-                    block.formId = 'YOUR_FORM_ID';
+                if (type === 'contactForm') {
                     block.submitLabel = 'Отправить';
                 }
 
@@ -763,7 +762,7 @@
                     case 'image': return 'https://placehold.co/800x400?text=Image';
                     case 'button': return 'Кнопка';
                     case 'section': return 'Секция';
-                    case 'formspree': return '';
+                    case 'contactForm': return '';
                     default: return '';
                 }
             }
@@ -775,7 +774,7 @@
                     case 'image': return 'Изображение';
                     case 'button': return 'Кнопка';
                     case 'section': return 'Секция';
-                    case 'formspree': return 'Форма (Formspree)';
+                    case 'contactForm': return 'Форма обратной связи';
                     default: return 'Блок';
                 }
             }
@@ -907,18 +906,7 @@
                         wrapper.appendChild(buttonColor);
                     }
 
-                    if (block.type === 'formspree') {
-                        const formIdInput = document.createElement('input');
-                        formIdInput.className = 'form-control form-control-sm mb-2';
-                        formIdInput.value = block.formId || 'YOUR_FORM_ID';
-                        formIdInput.placeholder = 'Formspree ID (например: f/xxxxxx)';
-                        formIdInput.addEventListener('input', () => {
-                            block.formId = formIdInput.value;
-                            renderPreview();
-                            scheduleSave();
-                        });
-                        wrapper.appendChild(formIdInput);
-
+                    if (block.type === 'contactForm') {
                         const submitLabelInput = document.createElement('input');
                         submitLabelInput.className = 'form-control form-control-sm mb-2';
                         submitLabelInput.value = block.submitLabel || 'Отправить';
@@ -932,7 +920,7 @@
 
                         const note = document.createElement('div');
                         note.className = 'text-muted small mb-2';
-                        note.textContent = 'Форма отправляет POST на Formspree. Замените YOUR_FORM_ID перед публикацией.';
+                        note.textContent = 'Endpoint формы задаётся на сервере автоматически из профиля владельца.';
                         wrapper.appendChild(note);
                     }
 
@@ -1082,14 +1070,11 @@
                         inner.appendChild(link);
                         break;
                     }
-                    case 'formspree': {
+                    case 'contactForm': {
                         const form = document.createElement('form');
-                        const fid = block.formId || 'YOUR_FORM_ID';
-                        form.action = `https://formspree.io/${fid}`;
-                        form.method = 'POST';
                         form.addEventListener('submit', (e) => {
                             e.preventDefault();
-                            alert('Это превью формы. При публикации убедитесь, что заменили YOUR_FORM_ID на реальный ID Formspree.');
+                            alert('Это превью. На опубликованном сайте форма отправляет данные через endpoint владельца.');
                         });
 
                         const nameInput = document.createElement('input');
@@ -1103,12 +1088,6 @@
                         emailInput.placeholder = 'Ваш email';
                         emailInput.name = 'email';
                         form.appendChild(emailInput);
-
-                        const subjectInput = document.createElement('input');
-                        subjectInput.className = 'form-control form-control-sm mb-2';
-                        subjectInput.placeholder = 'Тема';
-                        subjectInput.name = 'subject';
-                        form.appendChild(subjectInput);
 
                         const msg = document.createElement('textarea');
                         msg.className = 'form-control form-control-sm mb-2';
@@ -1185,104 +1164,6 @@ a.button-link {
 }`;
             }
 
-            function buildFinalHtml() {
-                const title = siteTitleInput.value || 'My site';
-                const titleColor = siteTitleColorInput.value || '#f8fafc';
-                const headerText = headerInput.value.trim();
-                const headerAlign = headerAlignInput.value || 'left';
-                const headerColor = headerColorInput.value || '#e5e7eb';
-                const footerText = footerInput.value.trim();
-                const footerAlign = footerAlignInput.value || 'left';
-                const footerColor = footerColorInput.value || '#e5e7eb';
-                const avatarUrl = avatarInput.value.trim();
-                const backgroundColor = backgroundColorInput?.value || '#0b1220';
-                const globalEffect = effectSelect.value || 'none';
-
-                const parts = [];
-
-                if (title) {
-                    const effectClass = globalEffect === 'shadow' ? 'effect-shadow' : (globalEffect === 'glow' ? 'effect-glow' : '');
-                    parts.push(`<div class="site-title ${effectClass}" style="text-align:${headerAlign};color:${escapeHtml(titleColor)}">${escapeHtml(title)}</div>`);
-                }
-
-                if (headerText || avatarUrl) {
-                    const effectClass = globalEffect === 'shadow' ? 'effect-shadow' : (globalEffect === 'glow' ? 'effect-glow' : '');
-                    const avatarHtml = avatarUrl ? `<img class="site-avatar" src="${escapeHtml(avatarUrl)}" alt="Logo" />` : '';
-                    const headerInner = headerText ? `<div>${escapeHtml(headerText)}</div>` : '';
-                    parts.push(`<header class="site-header ${effectClass}" style="text-align:${headerAlign};color:${escapeHtml(headerColor)}">${avatarHtml}${headerInner}</header>`);
-                }
-
-                parts.push('<main>');
-                for (const block of blocks) {
-                    const align = block.align || 'left';
-                    const alignStyle = align === 'left' ? '' : ` style="text-align:${align}"`;
-                    const blockColor = block.color ? ` color:${escapeHtml(block.color)};` : '';
-                    const effectClass = block.effect === 'shadow' ? 'effect-shadow' : (block.effect === 'glow' ? 'effect-glow' : '');
-                    switch (block.type) {
-                        case 'section':
-                            parts.push(`<div${alignStyle} class="${effectClass}" style="${blockColor}"><section><h3>${escapeHtml(block.content || 'Section')}</h3></section></div>`);
-                            break;
-                        case 'heading':
-                            parts.push(`<div${alignStyle} class="${effectClass}" style="${blockColor}"><h2>${escapeHtml(block.content || 'Heading')}</h2></div>`);
-                            break;
-                        case 'text':
-                            parts.push(`<div${alignStyle} class="${effectClass}" style="${blockColor}"><p>${escapeHtml(block.content || 'Text')}</p></div>`);
-                            break;
-                        case 'image':
-                            parts.push(`<div${alignStyle} class="${effectClass}"><img src="${escapeHtml(block.content || '')}" alt=""></div>`);
-                            break;
-                        case 'formspree': {
-                            const fid = escapeHtml(block.formId || 'YOUR_FORM_ID');
-                            const submitLabel = escapeHtml(block.submitLabel || 'Отправить');
-                            parts.push(`<div${alignStyle} class="${effectClass}"><form action="https://formspree.io/${fid}" method="POST">` +
-                                `<input type="text" name="name" placeholder="Ваше имя" />` +
-                                `<input type="email" name="_replyto" placeholder="Ваш email" />` +
-                                `<input type="text" name="subject" placeholder="Тема" />` +
-                                `<textarea name="message" placeholder="Сообщение"></textarea>` +
-                                `<div style="margin-top:.5rem"><button type="submit" style="background:${escapeHtml(block.buttonColor || '#2563eb')};color:#fff;border:none;padding:8px 16px;border-radius:6px">${submitLabel}</button></div>` +
-                                `</form></div>`);
-                            break;
-                        }
-                        case 'button': {
-                            const label = escapeHtml(block.content || 'Button');
-                            const url = escapeHtml(block.url || '#');
-                            const py = block.paddingY ?? 8;
-                            const px = block.paddingX ?? 16;
-                            const color = escapeHtml(block.buttonColor || '#2563eb');
-                            const effectClassButton = block.effect === 'shadow' ? 'effect-shadow' : (block.effect === 'glow' ? 'effect-glow' : '');
-                            parts.push(`<div${alignStyle}><a href="${url}" target="_blank" rel="noopener noreferrer" class="button-link ${effectClassButton}" style="padding:${py}px ${px}px;background:${color};color:#fff">${label}</a></div>`);
-                            break;
-                        }
-                    }
-                }
-                parts.push('</main>');
-
-                if (footerText) {
-                    const effectClass = globalEffect === 'shadow' ? 'effect-shadow' : (globalEffect === 'glow' ? 'effect-glow' : '');
-                    parts.push(`<footer class="${effectClass}" style="text-align:${footerAlign};color:${escapeHtml(footerColor)}"><div>${escapeHtml(footerText)}</div></footer>`);
-                }
-
-                const bodyContent = parts.join('\n');
-                const css = buildExportCss(backgroundColor);
-                const faviconTag = avatarUrl ? `<link rel="icon" href="${escapeHtml(avatarUrl)}" />` : '';
-
-                return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>${escapeHtml(title)}</title>
-  ${faviconTag}
-  <style>
-${css}
-  </style>
-</head>
-<body>
-${bodyContent}
-</body>
-</html>`;
-            }
-
             async function publishSite() {
                 const titleText = siteTitleInput.value.trim();
                 const slug = makeSlug(titleText);
@@ -1298,11 +1179,11 @@ ${bodyContent}
                 setPublishStatus('Публикация... пожалуйста, подождите.', 'is-muted');
 
                 try {
-                    const html = buildFinalHtml();
+                    const state = collectBuilderState();
                     const publishResp = await fetch('/api/publish', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ slug, html })
+                        body: JSON.stringify({ slug, state })
                     });
                     if (!publishResp.ok) {
                         const errText = await publishResp.text();
@@ -1365,8 +1246,8 @@ ${bodyContent}
                 saveTimer = setTimeout(saveState, 300);
             }
 
-            function saveState() {
-                const state = {
+            function collectBuilderState() {
+                return {
                     siteTitle: siteTitleInput.value,
                     siteTitleColor: siteTitleColorInput.value,
                     headerText: headerInput.value,
@@ -1378,8 +1259,24 @@ ${bodyContent}
                     avatarUrl: avatarInput.value,
                     backgroundColor: backgroundColorInput.value,
                     globalEffect: effectSelect.value,
-                    blocks
+                    blocks: blocks.map((block) => ({
+                        id: block.id,
+                        type: block.type === 'formspree' ? 'contactForm' : block.type,
+                        content: block.content,
+                        align: block.align,
+                        color: block.color,
+                        effect: block.effect,
+                        url: block.url,
+                        paddingY: block.paddingY,
+                        paddingX: block.paddingX,
+                        buttonColor: block.buttonColor,
+                        submitLabel: block.submitLabel
+                    }))
                 };
+            }
+
+            function saveState() {
+                const state = collectBuilderState();
                 localStorage.setItem('builder_state', JSON.stringify(state));
             }
 
@@ -1399,7 +1296,10 @@ ${bodyContent}
                     avatarInput.value = state.avatarUrl || '';
                     backgroundColorInput.value = state.backgroundColor || '#0b1220';
                     effectSelect.value = state.globalEffect || 'none';
-                    blocks = Array.isArray(state.blocks) ? state.blocks : [];
+                    blocks = Array.isArray(state.blocks) ? state.blocks.map((block) => ({
+                        ...block,
+                        type: block.type === 'formspree' ? 'contactForm' : block.type
+                    })) : [];
                     blockIdCounter = blocks.reduce((maxId, b) => Math.max(maxId, b.id || 0), 0) + 1;
                     hadSavedState = true;
                 } catch {
