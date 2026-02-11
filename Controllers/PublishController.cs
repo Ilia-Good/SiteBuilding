@@ -1,4 +1,4 @@
-using System.Net;
+п»їusing System.Net;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
@@ -77,17 +77,17 @@ public class PublishController : ControllerBase
             var slug = (request.Slug ?? string.Empty).Trim().ToLowerInvariant();
             if (string.IsNullOrWhiteSpace(slug))
             {
-                return BadRequest("Укажите имя папки сайта.");
+                return BadRequest("РЈРєР°Р¶РёС‚Рµ РёРјСЏ РїР°РїРєРё СЃР°Р№С‚Р°.");
             }
 
             if (slug.Length > MaxSiteNameLength)
             {
-                return BadRequest($"Имя сайта слишком длинное. Максимум {MaxSiteNameLength} символов.");
+                return BadRequest($"РРјСЏ СЃР°Р№С‚Р° СЃР»РёС€РєРѕРј РґР»РёРЅРЅРѕРµ. РњР°РєСЃРёРјСѓРј {MaxSiteNameLength} СЃРёРјРІРѕР»РѕРІ.");
             }
 
             if (!IsValidSlug(slug))
             {
-                return BadRequest("Имя сайта может содержать только латинские буквы, цифры и дефис.");
+                return BadRequest("РРјСЏ СЃР°Р№С‚Р° РјРѕР¶РµС‚ СЃРѕРґРµСЂР¶Р°С‚СЊ С‚РѕР»СЊРєРѕ Р»Р°С‚РёРЅСЃРєРёРµ Р±СѓРєРІС‹, С†РёС„СЂС‹ Рё РґРµС„РёСЃ.");
             }
 
             var userIdRaw = User.FindFirstValue("app_user_id");
@@ -112,7 +112,6 @@ public class PublishController : ControllerBase
                     Id = userId,
                     Email = email,
                     GoogleId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? Guid.NewGuid().ToString("N"),
-                    FormEndpoint = BuildDefaultFormEndpoint(email),
                     CreatedAt = now
                 };
                 _db.Users.Add(user);
@@ -128,12 +127,6 @@ public class PublishController : ControllerBase
                     isUpdated = true;
                 }
 
-                if (string.IsNullOrWhiteSpace(user.FormEndpoint) && !string.IsNullOrWhiteSpace(user.Email))
-                {
-                    user.FormEndpoint = BuildDefaultFormEndpoint(user.Email);
-                    isUpdated = true;
-                }
-
                 if (isUpdated)
                 {
                     await _db.SaveChangesAsync();
@@ -141,17 +134,24 @@ public class PublishController : ControllerBase
             }
 
             var builtFromState = request.State is not null;
+            var formEndpoint = ResolveFormEndpoint(user);
+            var hasContactForm = builtFromState && (request.State?.Blocks?.Any(b => NormalizeType(b.Type) == "contactForm") ?? false);
+            if (hasContactForm && string.IsNullOrWhiteSpace(formEndpoint))
+            {
+                return BadRequest("Р”Р»СЏ С„РѕСЂРјС‹ РѕР±СЂР°С‚РЅРѕР№ СЃРІСЏР·Рё СЃРЅР°С‡Р°Р»Р° СѓРєР°Р¶РёС‚Рµ Formspree endpoint РІ РЅР°СЃС‚СЂРѕР№РєР°С… РєРѕРЅСЃС‚СЂСѓРєС‚РѕСЂР°.");
+            }
+
             var html = builtFromState
-                ? BuildFinalHtml(request.State!, ResolveFormEndpoint(user))
+                ? BuildFinalHtml(request.State!, formEndpoint ?? string.Empty)
                 : request.Html ?? string.Empty;
             if (string.IsNullOrWhiteSpace(html))
             {
-                return BadRequest("Пустой HTML не может быть опубликован.");
+                return BadRequest("РџСѓСЃС‚РѕР№ HTML РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РѕРїСѓР±Р»РёРєРѕРІР°РЅ.");
             }
 
             if (html.Length > MaxHtmlLength)
             {
-                return BadRequest("HTML слишком большой. Уменьшите контент и попробуйте снова.");
+                return BadRequest("HTML СЃР»РёС€РєРѕРј Р±РѕР»СЊС€РѕР№. РЈРјРµРЅСЊС€РёС‚Рµ РєРѕРЅС‚РµРЅС‚ Рё РїРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°.");
             }
 
             if (!builtFromState)
@@ -161,18 +161,18 @@ public class PublishController : ControllerBase
 
             if (GetTotalTextLength(html) > MaxTotalTextLength)
             {
-                return BadRequest("Слишком много текста. Укоротите блоки и попробуйте снова.");
+                return BadRequest("РЎР»РёС€РєРѕРј РјРЅРѕРіРѕ С‚РµРєСЃС‚Р°. РЈРєРѕСЂРѕС‚РёС‚Рµ Р±Р»РѕРєРё Рё РїРѕРїСЂРѕР±СѓР№С‚Рµ СЃРЅРѕРІР°.");
             }
 
             if (GetMaxImageUrlLength(html) > MaxImageUrlLength)
             {
-                return BadRequest("Слишком длинный URL изображения. Укоротите ссылку.");
+                return BadRequest("РЎР»РёС€РєРѕРј РґР»РёРЅРЅС‹Р№ URL РёР·РѕР±СЂР°Р¶РµРЅРёСЏ. РЈРєРѕСЂРѕС‚РёС‚Рµ СЃСЃС‹Р»РєСѓ.");
             }
 
             var existingWithName = await _db.Sites.FirstOrDefaultAsync(s => s.SiteName == slug);
             if (existingWithName is not null && existingWithName.OwnerUserId != userId)
             {
-                return BadRequest("Имя сайта уже занято. Выберите другое.");
+                return BadRequest("РРјСЏ СЃР°Р№С‚Р° СѓР¶Рµ Р·Р°РЅСЏС‚Рѕ. Р’С‹Р±РµСЂРёС‚Рµ РґСЂСѓРіРѕРµ.");
             }
 
             var site = await _db.Sites.FirstOrDefaultAsync(s => s.OwnerUserId == userId && s.SiteName == slug);
@@ -181,7 +181,7 @@ public class PublishController : ControllerBase
                 var totalCount = await _db.Sites.CountAsync(s => s.OwnerUserId == userId);
                 if (totalCount >= MaxSitesPerUser)
                 {
-                    return BadRequest($"Лимит сайтов: {MaxSitesPerUser}. Удалите один из своих сайтов, чтобы создать новый.");
+                    return BadRequest($"Р›РёРјРёС‚ СЃР°Р№С‚РѕРІ: {MaxSitesPerUser}. РЈРґР°Р»РёС‚Рµ РѕРґРёРЅ РёР· СЃРІРѕРёС… СЃР°Р№С‚РѕРІ, С‡С‚РѕР±С‹ СЃРѕР·РґР°С‚СЊ РЅРѕРІС‹Р№.");
                 }
 
                 site = new Site
@@ -200,14 +200,14 @@ public class PublishController : ControllerBase
             }
             else if (!site.IsPaid && site.ExpiresAt <= now)
             {
-                return StatusCode(StatusCodes.Status403Forbidden, "Пробный период истёк. Отметьте сайт как оплаченный.");
+                return StatusCode(StatusCodes.Status403Forbidden, "РџСЂРѕР±РЅС‹Р№ РїРµСЂРёРѕРґ РёСЃС‚С‘Рє. РћС‚РјРµС‚СЊС‚Рµ СЃР°Р№С‚ РєР°Рє РѕРїР»Р°С‡РµРЅРЅС‹Р№.");
             }
 
             var today = GetUtcDate(now);
             var usage = await _db.SiteDailyUsages.FirstOrDefaultAsync(u => u.SiteId == site.Id && u.Date == today);
             if (usage is not null && usage.EditsCount >= MaxEditsPerDayPerSite)
             {
-                return BadRequest($"Лимит изменений на сегодня: {MaxEditsPerDayPerSite}.");
+                return BadRequest($"Р›РёРјРёС‚ РёР·РјРµРЅРµРЅРёР№ РЅР° СЃРµРіРѕРґРЅСЏ: {MaxEditsPerDayPerSite}.");
             }
 
             var owner = _configuration["GitHubPublish:Owner"] ?? "Ilia-Good";
@@ -218,7 +218,7 @@ public class PublishController : ControllerBase
 
             if (string.IsNullOrWhiteSpace(token))
             {
-                return StatusCode(500, "Токен публикации не настроен на сервере.");
+                return StatusCode(500, "РўРѕРєРµРЅ РїСѓР±Р»РёРєР°С†РёРё РЅРµ РЅР°СЃС‚СЂРѕРµРЅ РЅР° СЃРµСЂРІРµСЂРµ.");
             }
 
             var filePath = $"sites/{slug}/index.html";
@@ -291,7 +291,7 @@ public class PublishController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Publish failed");
-            return StatusCode(StatusCodes.Status500InternalServerError, "Ошибка публикации. Попробуйте позже.");
+            return StatusCode(StatusCodes.Status500InternalServerError, "РћС€РёР±РєР° РїСѓР±Р»РёРєР°С†РёРё. РџРѕРїСЂРѕР±СѓР№С‚Рµ РїРѕР·Р¶Рµ.");
         }
     }
 
@@ -300,26 +300,35 @@ public class PublishController : ControllerBase
         return Regex.IsMatch(slug, "^[a-z0-9-]+$");
     }
 
-    private string ResolveFormEndpoint(ApplicationUser user)
+    private static string? ResolveFormEndpoint(ApplicationUser user)
     {
-        var endpoint = user.FormEndpoint;
+        var endpoint = user.FormEndpoint?.Trim();
         if (string.IsNullOrWhiteSpace(endpoint))
         {
-            endpoint = BuildDefaultFormEndpoint(user.Email);
+            return null;
         }
 
-        return endpoint.Trim();
-    }
-
-    private string BuildDefaultFormEndpoint(string email)
-    {
-        var template = _configuration["Formspree:EndpointTemplate"];
-        if (!string.IsNullOrWhiteSpace(template))
+        if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var parsed))
         {
-            return template.Replace("{email}", Uri.EscapeDataString(email), StringComparison.OrdinalIgnoreCase);
+            return null;
         }
 
-        return $"https://formspree.io/{Uri.EscapeDataString(email)}";
+        if (!string.Equals(parsed.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        if (!string.Equals(parsed.Host, "formspree.io", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        if (!parsed.AbsolutePath.StartsWith("/f/", StringComparison.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+
+        return endpoint;
     }
 
     private static string BuildFinalHtml(BuilderStateRequest state, string formEndpoint)
@@ -459,16 +468,16 @@ public class PublishController : ControllerBase
             }
             case "contactForm":
             {
-                var submitLabel = EscapeHtml(block.SubmitLabel ?? "Отправить");
+                var submitLabel = EscapeHtml(block.SubmitLabel ?? "РћС‚РїСЂР°РІРёС‚СЊ");
                 html.AppendLine($"    <div class=\"contact-form-shell {effectClass}\" style=\"text-align:{align};\">");
                 html.AppendLine($"      <form class=\"sb-contact-form\" action=\"{EscapeHtml(formEndpoint)}\" method=\"POST\">");
-                html.AppendLine("        <input type=\"text\" name=\"name\" placeholder=\"Ваше имя\" required>");
-                html.AppendLine("        <input type=\"email\" name=\"email\" placeholder=\"Ваш email\" required>");
-                html.AppendLine("        <textarea name=\"message\" placeholder=\"Сообщение\" rows=\"5\" required></textarea>");
+                html.AppendLine("        <input type=\"text\" name=\"name\" placeholder=\"Р’Р°С€Рµ РёРјСЏ\" required>");
+                html.AppendLine("        <input type=\"email\" name=\"email\" placeholder=\"Р’Р°С€ email\" required>");
+                html.AppendLine("        <textarea name=\"message\" placeholder=\"РЎРѕРѕР±С‰РµРЅРёРµ\" rows=\"5\" required></textarea>");
                 html.AppendLine($"        <button type=\"submit\">{submitLabel}</button>");
                 html.AppendLine("      </form>");
-                html.AppendLine("      <div class=\"sb-contact-success\" hidden>Сообщение отправлено</div>");
-                html.AppendLine("      <div class=\"sb-contact-error\" hidden>Не удалось отправить сообщение. Попробуйте позже.</div>");
+                html.AppendLine("      <div class=\"sb-contact-success\" hidden>РЎРѕРѕР±С‰РµРЅРёРµ РѕС‚РїСЂР°РІР»РµРЅРѕ</div>");
+                html.AppendLine("      <div class=\"sb-contact-error\" hidden>РќРµ СѓРґР°Р»РѕСЃСЊ РѕС‚РїСЂР°РІРёС‚СЊ СЃРѕРѕР±С‰РµРЅРёРµ. РџРѕРїСЂРѕР±СѓР№С‚Рµ РїРѕР·Р¶Рµ.</div>");
                 html.AppendLine("    </div>");
                 break;
             }
@@ -658,3 +667,4 @@ a.button-link {{
         return new DateTime(value.Year, value.Month, value.Day, 0, 0, 0, DateTimeKind.Utc);
     }
 }
+

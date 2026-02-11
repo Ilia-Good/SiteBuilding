@@ -103,6 +103,23 @@
 
                 <hr />
 
+                <h5 class="card-title mb-2">Форма обратной связи</h5>
+                <p class="text-muted small mb-2">Endpoint хранится у владельца и подставляется сервером автоматически.</p>
+                <div class="mb-2">
+                    <label class="form-label" for="formOwnerEmailInput">Google email владельца</label>
+                    <input class="form-control form-control-sm" id="formOwnerEmailInput" readonly />
+                </div>
+                <div class="mb-2">
+                    <label class="form-label" for="formEndpointInput">Formspree endpoint</label>
+                    <input class="form-control form-control-sm" id="formEndpointInput" placeholder="https://formspree.io/f/XXXXXX" />
+                </div>
+                <button type="button" id="saveFormEndpointBtn" class="btn btn-outline-info btn-sm w-100 mb-2">
+                    Сохранить endpoint формы
+                </button>
+                <div id="formEndpointStatus" class="small text-muted mb-2"></div>
+
+                <hr />
+
                 <h5 class="card-title mb-2">Публикация (GitHub Pages)</h5>
                 <p class="text-muted small mb-2">Название сайта используется в адресе. Нажмите «Опубликовать сайт».</p>
 
@@ -551,6 +568,10 @@
             const publishModal = document.getElementById('publishModal');
             const publishModalLink = document.getElementById('publishModalLink');
             const publishModalClose = document.getElementById('publishModalClose');
+            const formOwnerEmailInput = document.getElementById('formOwnerEmailInput');
+            const formEndpointInput = document.getElementById('formEndpointInput');
+            const saveFormEndpointBtn = document.getElementById('saveFormEndpointBtn');
+            const formEndpointStatus = document.getElementById('formEndpointStatus');
             const addButtons = document.querySelectorAll('[data-add-block]');
             const settingsToggle = document.getElementById('settingsToggle');
             const settingsColumn = document.querySelector('.builder-settings-col');
@@ -709,6 +730,12 @@
                     if (e.target === publishModal) {
                         publishModal.classList.add('d-none');
                     }
+                });
+            }
+
+            if (saveFormEndpointBtn) {
+                saveFormEndpointBtn.addEventListener('click', async () => {
+                    await saveFormEndpoint();
                 });
             }
 
@@ -1234,6 +1261,53 @@ a.button-link {
                 }
             }
 
+            function setFormEndpointStatus(message, isError) {
+                if (!formEndpointStatus) return;
+                formEndpointStatus.textContent = message || '';
+                formEndpointStatus.className = `small mb-2 ${isError ? 'text-danger' : 'text-success'}`;
+            }
+
+            async function loadFormEndpoint() {
+                if (!formOwnerEmailInput || !formEndpointInput) return;
+                try {
+                    const resp = await fetch('/api/account/form-endpoint', { headers: { 'Accept': 'application/json' } });
+                    if (!resp.ok) return;
+                    const data = await resp.json();
+                    formOwnerEmailInput.value = data.email || '';
+                    formEndpointInput.value = data.formEndpoint || '';
+                } catch {
+                    // no-op
+                }
+            }
+
+            async function saveFormEndpoint() {
+                if (!formEndpointInput) return;
+                const endpoint = (formEndpointInput.value || '').trim();
+                if (!endpoint) {
+                    setFormEndpointStatus('Введите endpoint Formspree.', true);
+                    return;
+                }
+
+                setFormEndpointStatus('Сохраняем...', false);
+                try {
+                    const resp = await fetch('/api/account/form-endpoint', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ formEndpoint: endpoint })
+                    });
+
+                    if (!resp.ok) {
+                        const errText = await resp.text();
+                        setFormEndpointStatus(errText || 'Не удалось сохранить endpoint.', true);
+                        return;
+                    }
+
+                    setFormEndpointStatus('Endpoint сохранён. Теперь форма будет работать после публикации.', false);
+                } catch {
+                    setFormEndpointStatus('Ошибка сети при сохранении endpoint.', true);
+                }
+            }
+
             function showPublishModal(url) {
                 if (!publishModal || !publishModalLink) return;
                 publishModalLink.href = url;
@@ -1365,6 +1439,7 @@ a.button-link {
             });
 
             loadState();
+            loadFormEndpoint();
             renderEditors();
             renderPreview();
 

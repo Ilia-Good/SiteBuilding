@@ -63,7 +63,6 @@ builder.Services
                         Id = Guid.NewGuid(),
                         Email = email,
                         GoogleId = googleId,
-                        FormEndpoint = $"https://formspree.io/{Uri.EscapeDataString(email)}",
                         CreatedAt = DateTime.UtcNow
                     };
                     db.Users.Add(user);
@@ -72,15 +71,6 @@ builder.Services
                 else if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
                 {
                     user.Email = email;
-                    if (string.IsNullOrWhiteSpace(user.FormEndpoint))
-                    {
-                        user.FormEndpoint = $"https://formspree.io/{Uri.EscapeDataString(email)}";
-                    }
-                    await db.SaveChangesAsync();
-                }
-                else if (string.IsNullOrWhiteSpace(user.FormEndpoint))
-                {
-                    user.FormEndpoint = $"https://formspree.io/{Uri.EscapeDataString(email)}";
                     await db.SaveChangesAsync();
                 }
 
