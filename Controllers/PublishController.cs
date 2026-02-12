@@ -308,7 +308,11 @@ public class PublishController : ControllerBase
 
     private string BuildApiBaseUrl()
     {
-        var configured = _configuration["ContactApi:BaseUrl"];
+        var configured =
+            _configuration["ContactApi:BaseUrl"] ??
+            _configuration["CONTACT_API_BASE_URL"] ??
+            Environment.GetEnvironmentVariable("CONTACT_API_BASE_URL") ??
+            Environment.GetEnvironmentVariable("RENDER_EXTERNAL_URL");
         if (!string.IsNullOrWhiteSpace(configured))
         {
             return configured.TrimEnd('/');
@@ -393,7 +397,7 @@ public class PublishController : ControllerBase
         html.AppendLine("        var error = card ? card.querySelector('.sb-contact-error') : null;");
         html.AppendLine("        if (success) success.hidden = true;");
         html.AppendLine("        if (error) { error.hidden = true; error.textContent = 'Wrong. Come back later.'; }");
-        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send', 'https://sitebuilding.onrender.com/api/contact/send'];");
+        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send'];");
         html.AppendLine("        endpoints = endpoints.filter(function(v, i, arr) { return arr.indexOf(v) === i; });");
         html.AppendLine("        var payload = {");
         html.AppendLine("          siteId: form.dataset.siteId,");
