@@ -68,6 +68,9 @@ namespace SiteBuilder.Migrations
                     b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("BuilderStateJson")
+                        .HasColumnType("text");
+
                     b.Property<string>("GithubPath")
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");

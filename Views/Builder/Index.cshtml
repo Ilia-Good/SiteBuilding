@@ -530,7 +530,7 @@
 
 @section Scripts {
     <script>
-        (function () {
+        (async function () {
             const siteTitleInput = document.getElementById('siteTitleInput');
             const siteTitleColorInput = document.getElementById('siteTitleColorInput');
             const headerInput = document.getElementById('headerInput');
@@ -569,6 +569,9 @@
             let hadSavedState = false;
             let suppressContextClose = false;
             let contextTargetId = null;
+            const query = new URLSearchParams(window.location.search);
+            const editSlug = (query.get('site') || '').trim().toLowerCase();
+            const copyFromSlug = (query.get('copyFrom') || '').trim().toLowerCase();
 
             const templates = {
                 blank: {
@@ -1285,25 +1288,47 @@ a.button-link {
                 if (!raw) return;
                 try {
                     const state = JSON.parse(raw);
-                    siteTitleInput.value = state.siteTitle || '';
-                    siteTitleColorInput.value = state.siteTitleColor || '#f8fafc';
-                    headerInput.value = state.headerText || '';
-                    headerAlignInput.value = state.headerAlign || 'left';
-                    headerColorInput.value = state.headerColor || '#e5e7eb';
-                    footerInput.value = state.footerText || '';
-                    footerAlignInput.value = state.footerAlign || 'left';
-                    footerColorInput.value = state.footerColor || '#e5e7eb';
-                    avatarInput.value = state.avatarUrl || '';
-                    backgroundColorInput.value = state.backgroundColor || '#0b1220';
-                    effectSelect.value = state.globalEffect || 'none';
-                    blocks = Array.isArray(state.blocks) ? state.blocks.map((block) => ({
-                        ...block,
-                        type: block.type === 'formspree' ? 'contactForm' : block.type
-                    })) : [];
-                    blockIdCounter = blocks.reduce((maxId, b) => Math.max(maxId, b.id || 0), 0) + 1;
-                    hadSavedState = true;
+                    applyBuilderState(state, false);
                 } catch {
                     return;
+                }
+            }
+
+            function applyBuilderState(state, asCopy) {
+                siteTitleInput.value = state.siteTitle || '';
+                if (asCopy && siteTitleInput.value) {
+                    siteTitleInput.value = `${siteTitleInput.value} copy`;
+                }
+                siteTitleColorInput.value = state.siteTitleColor || '#f8fafc';
+                headerInput.value = state.headerText || '';
+                headerAlignInput.value = state.headerAlign || 'left';
+                headerColorInput.value = state.headerColor || '#e5e7eb';
+                footerInput.value = state.footerText || '';
+                footerAlignInput.value = state.footerAlign || 'left';
+                footerColorInput.value = state.footerColor || '#e5e7eb';
+                avatarInput.value = state.avatarUrl || '';
+                backgroundColorInput.value = state.backgroundColor || '#0b1220';
+                effectSelect.value = state.globalEffect || 'none';
+                blocks = Array.isArray(state.blocks) ? state.blocks.map((block) => ({
+                    ...block,
+                    type: block.type === 'formspree' ? 'contactForm' : block.type
+                })) : [];
+                blockIdCounter = blocks.reduce((maxId, b) => Math.max(maxId, b.id || 0), 0) + 1;
+                hadSavedState = true;
+            }
+
+            async function loadRemoteState(slug, asCopy) {
+                if (!slug) return false;
+                try {
+                    const resp = await fetch(`/api/builder/state/${encodeURIComponent(slug)}`, {
+                        headers: { 'Accept': 'application/json' }
+                    });
+                    if (!resp.ok) return false;
+                    const state = await resp.json();
+                    applyBuilderState(state, asCopy);
+                    return true;
+                } catch {
+                    return false;
                 }
             }
 
@@ -1364,7 +1389,16 @@ a.button-link {
                 }
             });
 
-            loadState();
+            let loadedFromServer = false;
+            if (copyFromSlug) {
+                loadedFromServer = await loadRemoteState(copyFromSlug, true);
+            } else if (editSlug) {
+                loadedFromServer = await loadRemoteState(editSlug, false);
+            }
+
+            if (!loadedFromServer) {
+                loadState();
+            }
             renderEditors();
             renderPreview();
 

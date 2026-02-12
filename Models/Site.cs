@@ -27,6 +27,8 @@ public class Site
     [MaxLength(256)]
     public string? GithubPath { get; set; }
 
+    public string? BuilderStateJson { get; set; }
+
     public ApplicationUser? Owner { get; set; }
 
     public ICollection<SiteDailyUsage> DailyUsages { get; set; } = new List<SiteDailyUsage>();

@@ -272,6 +272,10 @@ public class PublishController : ControllerBase
 
             site.PublishedAt = now;
             site.IsActive = true;
+            if (builtFromState && request.State is not null)
+            {
+                site.BuilderStateJson = JsonSerializer.Serialize(request.State);
+            }
 
             if (usage is null)
             {
