@@ -17,6 +17,7 @@ namespace SiteBuilder.Controllers;
 [Route("api/publish")]
 public class PublishController : ControllerBase
 {
+    private const string DefaultPublicApiBaseUrl = "https://sitebuilding.onrender.com";
     private const int MaxHtmlLength = 1_000_000;
     private const int MaxTotalTextLength = 5_000;
     private const int MaxImageUrlLength = 500;
@@ -330,6 +331,15 @@ public class PublishController : ControllerBase
             return configured.TrimEnd('/');
         }
 
+        var host = Request.Host.Host ?? string.Empty;
+        var isLocalHost = string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase) ||
+                          host.Equals("127.0.0.1") ||
+                          host.Equals("::1");
+        if (isLocalHost)
+        {
+            return DefaultPublicApiBaseUrl;
+        }
+
         var fallback = $"{Request.Scheme}://{Request.Host.Value}";
         if (Uri.TryCreate(fallback, UriKind.Absolute, out var fallbackUri))
         {
@@ -337,7 +347,7 @@ public class PublishController : ControllerBase
             return uriBuilder.Uri.ToString().TrimEnd('/');
         }
 
-        return fallback;
+        return DefaultPublicApiBaseUrl;
     }
 
     private static string BuildFinalHtml(BuilderStateRequest state, Guid siteId, string apiBaseUrl)
@@ -416,7 +426,7 @@ public class PublishController : ControllerBase
         html.AppendLine("        var error = card ? card.querySelector('.sb-contact-error') : null;");
         html.AppendLine("        if (success) success.hidden = true;");
         html.AppendLine("        if (error) { error.hidden = true; error.textContent = 'Wrong. Come back later.'; }");
-        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send', 'https://sitebuilding.onrender.com/api/contact/send'];");
+        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send', '{DefaultPublicApiBaseUrl}/api/contact/send', '/api/contact/send'];");
         html.AppendLine("        endpoints = endpoints.filter(function(v, i, arr) { return arr.indexOf(v) === i; });");
         html.AppendLine("        var payload = {");
         html.AppendLine("          siteId: form.dataset.siteId,");

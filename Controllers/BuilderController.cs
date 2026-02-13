@@ -30,14 +30,14 @@ public class BuilderController : Controller
     [HttpGet("builder/template")]
     public IActionResult TemplateGenerator()
     {
-        ViewData["Title"] = "Генератор HTML шаблонов";
+        ViewData["Title"] = "Template Generator";
         return View();
     }
 
     [HttpGet("builder/trial-expired")]
     public IActionResult TrialExpired()
     {
-        ViewData["Title"] = "Пробный период истёк";
+        ViewData["Title"] = "Trial expired";
         return View();
     }
 
@@ -80,28 +80,23 @@ public class BuilderController : Controller
         }
     }
 
-    /// <summary>
-    /// Генерирует HTML шаблон мини-сайта с формой обратной связи через Formspree
-    /// </summary>
     [HttpPost("builder/generate-template")]
     public IActionResult GenerateTemplate([FromBody] TemplateRequest request)
     {
         try
         {
-            // Получаем email из Google аккаунта пользователя
             var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-            
+
             if (string.IsNullOrEmpty(userEmail))
                 userEmail = User.FindFirst("preferred_email")?.Value;
 
             if (string.IsNullOrEmpty(userEmail))
-                return BadRequest(new { error = "Email пользователя не найден" });
+                return BadRequest(new { error = "User email is missing" });
 
-            // Генерируем HTML
             var htmlTemplate = _templateGenerator.GenerateTemplate(
                 userEmail,
-                siteName: request?.SiteName ?? "Мой сайт",
-                siteDescription: request?.SiteDescription ?? "Добро пожаловать на мой сайт"
+                siteName: request?.SiteName ?? "My site",
+                siteDescription: request?.SiteDescription ?? "Welcome to my site"
             );
 
             return Ok(new { html = htmlTemplate });
@@ -112,26 +107,23 @@ public class BuilderController : Controller
         }
     }
 
-    /// <summary>
-    /// Скачивает сгенерированный HTML как файл
-    /// </summary>
     [HttpPost("builder/download-template")]
     public IActionResult DownloadTemplate([FromBody] TemplateRequest request)
     {
         try
         {
             var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
-            
+
             if (string.IsNullOrEmpty(userEmail))
                 userEmail = User.FindFirst("preferred_email")?.Value;
 
             if (string.IsNullOrEmpty(userEmail))
-                return BadRequest(new { error = "Email пользователя не найден" });
+                return BadRequest(new { error = "User email is missing" });
 
             var htmlTemplate = _templateGenerator.GenerateTemplate(
                 userEmail,
-                siteName: request?.SiteName ?? "Мой сайт",
-                siteDescription: request?.SiteDescription ?? "Добро пожаловать на мой сайт"
+                siteName: request?.SiteName ?? "My site",
+                siteDescription: request?.SiteDescription ?? "Welcome to my site"
             );
 
             var bytes = System.Text.Encoding.UTF8.GetBytes(htmlTemplate);
@@ -144,9 +136,6 @@ public class BuilderController : Controller
     }
 }
 
-/// <summary>
-/// Модель для запроса на создание шаблона
-/// </summary>
 public class TemplateRequest
 {
     public string? SiteName { get; set; }
