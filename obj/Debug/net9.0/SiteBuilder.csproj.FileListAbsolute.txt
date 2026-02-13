@@ -480,8 +480,6 @@ C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\rjsmcshtml.dswa.cache.js
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\scopedcss\Views\Shared\_Layout.cshtml.rz.scp.css
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\scopedcss\bundle\SiteBuilder.styles.css
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\scopedcss\projectbundle\SiteBuilder.bundle.scp.css
-C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\issku8wst7-9byxq8ps66.gz
-C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\52uxdyh5ep-npsm0nrwn9.gz
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\eurd1zl4m6-fr7q2aak1r.gz
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\nvmvcit925-7cbv1r8koy.gz
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\4dc2x70vi0-bqjiyaj88i.gz
@@ -557,3 +555,6 @@ C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\refint\SiteBuilder.dll
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\SiteBuilder.pdb
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\SiteBuilder.genruntimeconfig.cache
 C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\ref\SiteBuilder.dll
+C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\issku8wst7-duw6i3z25p.gz
+C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\52uxdyh5ep-lztp1psp3k.gz
+C:\Users\GoodIlia\Desktop\SiteBuilding\obj\Debug\net9.0\compressed\zjt5mjxjur-i9wujulwlv.gz

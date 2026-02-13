@@ -100,11 +100,13 @@ builder.Services
                 var googleId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(googleId))
                 {
-                    throw new InvalidOperationException("Google profile did not return required claims.");
+                    context.Fail("Google profile did not return required claims.");
+                    return;
                 }
 
                 var db = context.HttpContext.RequestServices.GetRequiredService<ApplicationDbContext>();
                 var user = await db.Users.FirstOrDefaultAsync(u => u.GoogleId == googleId);
+                user ??= await db.Users.FirstOrDefaultAsync(u => u.Email == email);
                 if (user is null)
                 {
                     user = new ApplicationUser
@@ -117,10 +119,25 @@ builder.Services
                     db.Users.Add(user);
                     await db.SaveChangesAsync();
                 }
-                else if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+                else
                 {
-                    user.Email = email;
-                    await db.SaveChangesAsync();
+                    var changed = false;
+                    if (!string.Equals(user.Email, email, StringComparison.OrdinalIgnoreCase))
+                    {
+                        user.Email = email;
+                        changed = true;
+                    }
+
+                    if (!string.Equals(user.GoogleId, googleId, StringComparison.Ordinal))
+                    {
+                        user.GoogleId = googleId;
+                        changed = true;
+                    }
+
+                    if (changed)
+                    {
+                        await db.SaveChangesAsync();
+                    }
                 }
 
                 var identity = (ClaimsIdentity)context.Principal!.Identity!;
