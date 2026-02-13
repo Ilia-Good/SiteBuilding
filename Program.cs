@@ -161,6 +161,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
+    db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sites"" ADD COLUMN IF NOT EXISTS ""BuilderStateJson"" text;");
 }
 
 // Configure the HTTP request pipeline.
