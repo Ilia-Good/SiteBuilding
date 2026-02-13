@@ -1397,7 +1397,14 @@ a.button-link {
             }
 
             if (!loadedFromServer) {
-                loadState();
+                if (editSlug || copyFromSlug) {
+                    // Fallback only when opening existing/copy mode and server state is unavailable.
+                    loadState();
+                } else {
+                    // New site mode: do not reuse previous local draft automatically.
+                    localStorage.removeItem('builder_state');
+                    hadSavedState = false;
+                }
             }
             renderEditors();
             renderPreview();

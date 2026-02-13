@@ -319,10 +319,24 @@ public class PublishController : ControllerBase
             Environment.GetEnvironmentVariable("RENDER_EXTERNAL_URL");
         if (!string.IsNullOrWhiteSpace(configured))
         {
+            if (Uri.TryCreate(configured.Trim(), UriKind.Absolute, out var configuredUri))
+            {
+                // Force HTTPS for published static sites to avoid mixed-content network failures.
+                var uriBuilder = new UriBuilder(configuredUri) { Scheme = Uri.UriSchemeHttps, Port = -1 };
+                return uriBuilder.Uri.ToString().TrimEnd('/');
+            }
+
             return configured.TrimEnd('/');
         }
 
-        return $"{Request.Scheme}://{Request.Host.Value}";
+        var fallback = $"{Request.Scheme}://{Request.Host.Value}";
+        if (Uri.TryCreate(fallback, UriKind.Absolute, out var fallbackUri))
+        {
+            var uriBuilder = new UriBuilder(fallbackUri) { Scheme = Uri.UriSchemeHttps, Port = -1 };
+            return uriBuilder.Uri.ToString().TrimEnd('/');
+        }
+
+        return fallback;
     }
 
     private static string BuildFinalHtml(BuilderStateRequest state, Guid siteId, string apiBaseUrl)
@@ -401,7 +415,7 @@ public class PublishController : ControllerBase
         html.AppendLine("        var error = card ? card.querySelector('.sb-contact-error') : null;");
         html.AppendLine("        if (success) success.hidden = true;");
         html.AppendLine("        if (error) { error.hidden = true; error.textContent = 'Wrong. Come back later.'; }");
-        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send'];");
+        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send', 'https://sitebuilding.onrender.com/api/contact/send'];");
         html.AppendLine("        endpoints = endpoints.filter(function(v, i, arr) { return arr.indexOf(v) === i; });");
         html.AppendLine("        var payload = {");
         html.AppendLine("          siteId: form.dataset.siteId,");
