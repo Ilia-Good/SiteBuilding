@@ -30,7 +30,14 @@ public class HomeController : Controller
         return View(model);
     }
 
+    [HttpGet("privacy")]
     public IActionResult Privacy()
+    {
+        return View();
+    }
+
+    [HttpGet("terms")]
+    public IActionResult Terms()
     {
         return View();
     }

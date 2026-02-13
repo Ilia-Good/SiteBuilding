@@ -1,22 +1,28 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
+@inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8773683201595025"
-        crossorigin="anonymous"></script>
+    @{
+        var googleSiteVerification = Configuration["GOOGLE_SITE_VERIFICATION"];
+    }
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@(string.IsNullOrWhiteSpace(ViewData["Title"] as string) ? "SiteBuilding — конструктор сайтов" : $"{ViewData["Title"]} | SiteBuilding")</title>
+    <title>@(string.IsNullOrWhiteSpace(ViewData["Title"] as string) ? "SiteBuilding - конструктор сайтов" : $"{ViewData["Title"]} | SiteBuilding")</title>
 
-    <meta name="description" content="SiteBuilding — конструктор мини‑сайтов. Быстро собери сайт и опубликуй." />
+    <meta name="description" content="SiteBuilding - конструктор мини-сайтов. Быстро собери сайт и опубликуй." />
     <link rel="canonical" href="https://sitebuilding.onrender.com/" />
     <meta name="robots" content="index,follow" />
 
-    <meta property="og:title" content="SiteBuilding — конструктор сайтов" />
-    <meta property="og:description" content="Соберите мини‑сайт за минуты и опубликуйте." />
+    <meta property="og:title" content="SiteBuilding - конструктор сайтов" />
+    <meta property="og:description" content="Соберите мини-сайт за минуты и опубликуйте." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://sitebuilding.onrender.com/" />
     <meta property="og:image" content="https://sitebuilding.onrender.com/android-chrome-512x512.png" />
+    @if (!string.IsNullOrWhiteSpace(googleSiteVerification))
+    {
+        <meta name="google-site-verification" content="@googleSiteVerification" />
+    }
 
     <link rel="icon" type="image/x-icon" sizes="any" href="~/favicon.ico" asp-append-version="true" />
     <link rel="icon" type="image/png" sizes="32x32" href="~/favicon-32x32.png" asp-append-version="true" />
@@ -27,6 +33,7 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SiteBuilder.styles.css" asp-append-version="true" />
+    @await RenderSectionAsync("Ads", required: false)
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -74,6 +81,13 @@
             @RenderBody()
         </main>
     </div>
+    <footer class="container pb-4">
+        <div class="d-flex flex-wrap gap-3 small text-muted">
+            <a asp-controller="Home" asp-action="Privacy">Конфиденциальность</a>
+            <a asp-controller="Home" asp-action="Terms">Условия</a>
+            <a href="/explore">Публичные сайты</a>
+        </div>
+    </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
