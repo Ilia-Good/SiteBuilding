@@ -53,6 +53,9 @@ public class PublishController : ControllerBase
         string? AvatarUrl,
         string? BackgroundColor,
         string? GlobalEffect,
+        string? SiteLanguage,
+        string? AccentColor,
+        bool? AnimateBlocks,
         List<BuilderBlockRequest>? Blocks
     );
 
@@ -352,12 +355,9 @@ public class PublishController : ControllerBase
 
     private static string BuildFinalHtml(BuilderStateRequest state, Guid siteId, string apiBaseUrl)
     {
-        var title = NormalizeDisplayText(state.SiteTitle);
-        if (string.IsNullOrWhiteSpace(title))
-        {
-            title = "My site";
-        }
-
+        var language = SafeLanguage(state.SiteLanguage);
+        var isRu = language == "ru";
+        var title = NormalizeDisplayText(state.SiteTitle, isRu ? "Мой сайт" : "My site");
         var titleColor = SafeColor(state.SiteTitleColor, "#f8fafc")!;
         var headerText = NormalizeDisplayText(state.HeaderText);
         var headerAlign = SafeAlign(state.HeaderAlign);
@@ -368,10 +368,15 @@ public class PublishController : ControllerBase
         var avatarUrl = state.AvatarUrl?.Trim() ?? string.Empty;
         var backgroundColor = SafeColor(state.BackgroundColor, "#0b1220")!;
         var globalEffectClass = ToEffectClass(state.GlobalEffect);
+        var accentColor = SafeColor(state.AccentColor, "#2563eb")!;
+        var animateBlocks = state.AnimateBlocks == true;
+
+        var defaultError = isRu ? "Ошибка. Попробуйте позже." : "Error. Try again later.";
+        var networkError = isRu ? "Ошибка сети/CORS. Попробуйте позже." : "Network/CORS error. Try again later.";
 
         var html = new StringBuilder();
         html.AppendLine("<!DOCTYPE html>");
-        html.AppendLine("<html lang=\"ru\">");
+        html.AppendLine($"<html lang=\"{language}\">");
         html.AppendLine("<head>");
         html.AppendLine("  <meta charset=\"utf-8\" />");
         html.AppendLine("  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />");
@@ -382,7 +387,7 @@ public class PublishController : ControllerBase
         }
 
         html.AppendLine("  <style>");
-        html.AppendLine(BuildExportCss(backgroundColor));
+        html.AppendLine(BuildExportCss(backgroundColor, accentColor, animateBlocks));
         html.AppendLine("  </style>");
         html.AppendLine("</head>");
         html.AppendLine("<body>");
@@ -408,7 +413,7 @@ public class PublishController : ControllerBase
         html.AppendLine("  <main>");
         foreach (var block in state.Blocks ?? [])
         {
-            AppendBlockHtml(html, block, siteId);
+            AppendBlockHtml(html, block, siteId, language, accentColor);
         }
         html.AppendLine("  </main>");
 
@@ -425,38 +430,28 @@ public class PublishController : ControllerBase
         html.AppendLine("        var success = card ? card.querySelector('.sb-contact-success') : null;");
         html.AppendLine("        var error = card ? card.querySelector('.sb-contact-error') : null;");
         html.AppendLine("        if (success) success.hidden = true;");
-        html.AppendLine("        if (error) { error.hidden = true; error.textContent = 'Wrong. Come back later.'; }");
-        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send-simple', '{DefaultPublicApiBaseUrl}/api/contact/send-simple', '{EscapeHtml(apiBaseUrl)}/api/contact/send', '{DefaultPublicApiBaseUrl}/api/contact/send', '/api/contact/send-simple', '/api/contact/send'];");
+        html.AppendLine($"        if (error) {{ error.hidden = true; error.textContent = '{JsString(defaultError)}'; }}");
+        html.AppendLine($"        var endpoints = ['{EscapeHtml(apiBaseUrl)}/api/contact/send', '{DefaultPublicApiBaseUrl}/api/contact/send', '/api/contact/send'];");
         html.AppendLine("        endpoints = endpoints.filter(function(v, i, arr) { return arr.indexOf(v) === i; });");
         html.AppendLine("        var payload = {");
         html.AppendLine("          siteId: form.dataset.siteId,");
         html.AppendLine("          name: form.querySelector('[name=\"name\"]').value,");
         html.AppendLine("          email: form.querySelector('[name=\"email\"]').value,");
         html.AppendLine("          message: form.querySelector('[name=\"message\"]').value,");
-        html.AppendLine("          websiteField: form.querySelector('[name=\"middle_name\"]').value");
+        html.AppendLine("          honeypot: form.querySelector('[name=\"honeypot\"]').value");
         html.AppendLine("        };");
-        html.AppendLine("        var formPayload = new FormData();");
-        html.AppendLine("        formPayload.append('siteId', payload.siteId || '');");
-        html.AppendLine("        formPayload.append('name', payload.name || '');");
-        html.AppendLine("        formPayload.append('email', payload.email || '');");
-        html.AppendLine("        formPayload.append('message', payload.message || '');");
-        html.AppendLine("        formPayload.append('websiteField', payload.websiteField || '');");
         html.AppendLine("        try {");
         html.AppendLine("          var resp = null;");
         html.AppendLine("          var lastNetworkError = null;");
         html.AppendLine("          var lastHttpResp = null;");
         html.AppendLine("          for (var i = 0; i < endpoints.length; i++) {");
         html.AppendLine("            try {");
-        html.AppendLine("              if (endpoints[i].indexOf('send-simple') !== -1) {");
-        html.AppendLine("                resp = await fetch(endpoints[i], { method: 'POST', mode: 'cors', body: formPayload });");
-        html.AppendLine("              } else {");
-        html.AppendLine("                resp = await fetch(endpoints[i], {");
+        html.AppendLine("              resp = await fetch(endpoints[i], {");
         html.AppendLine("                  method: 'POST',");
         html.AppendLine("                  mode: 'cors',");
         html.AppendLine("                  headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },");
         html.AppendLine("                  body: JSON.stringify(payload)");
         html.AppendLine("                });");
-        html.AppendLine("              }");
         html.AppendLine("              if (resp && resp.ok) {");
         html.AppendLine("                break;");
         html.AppendLine("              }");
@@ -478,21 +473,35 @@ public class PublishController : ControllerBase
         html.AppendLine("            try { problem = await resp.json(); } catch (_) { }");
         html.AppendLine("            var reason = problem && problem.reason ? problem.reason : '';");
         html.AppendLine("            if (error) {");
-        html.AppendLine("              if (reason === 'invalid_email') error.textContent = 'Wrong email format.';");
-        html.AppendLine("              else if (reason === 'invalid_name') error.textContent = 'Wrong name.';");
-        html.AppendLine("              else if (reason === 'invalid_message') error.textContent = 'Wrong message length.';");
-        html.AppendLine("              else if (reason === 'rate_limit') error.textContent = 'Too many requests. Come back later.';");
-        html.AppendLine("              else if (reason === 'limit') error.textContent = 'Daily limit reached. Come back later.';");
-        html.AppendLine("              else if (reason === 'site_not_found') error.textContent = 'Site not found. Re-publish the site.';");
-        html.AppendLine("              else if (reason === 'spam') error.textContent = 'Message blocked by anti-spam.';");
-        html.AppendLine("              else error.textContent = 'Wrong. Come back later.';");
+        html.AppendLine(isRu
+            ? "              if (reason === 'invalid_email') error.textContent = 'Неверный формат email.';"
+            : "              if (reason === 'invalid_email') error.textContent = 'Invalid email format.';");
+        html.AppendLine(isRu
+            ? "              else if (reason === 'invalid_name') error.textContent = 'Неверное имя.';"
+            : "              else if (reason === 'invalid_name') error.textContent = 'Invalid name.';");
+        html.AppendLine(isRu
+            ? "              else if (reason === 'invalid_message') error.textContent = 'Неверная длина сообщения.';"
+            : "              else if (reason === 'invalid_message') error.textContent = 'Invalid message length.';");
+        html.AppendLine(isRu
+            ? "              else if (reason === 'rate_limit') error.textContent = 'Слишком много запросов. Попробуйте позже.';"
+            : "              else if (reason === 'rate_limit') error.textContent = 'Too many requests. Try again later.';");
+        html.AppendLine(isRu
+            ? "              else if (reason === 'limit') error.textContent = 'Дневной лимит исчерпан. Попробуйте позже.';"
+            : "              else if (reason === 'limit') error.textContent = 'Daily limit reached. Try again later.';");
+        html.AppendLine(isRu
+            ? "              else if (reason === 'site_not_found') error.textContent = 'Сайт не найден. Опубликуйте его заново.';"
+            : "              else if (reason === 'site_not_found') error.textContent = 'Site not found. Re-publish the site.';");
+        html.AppendLine(isRu
+            ? "              else if (reason === 'spam') error.textContent = 'Сообщение заблокировано антиспамом.';"
+            : "              else if (reason === 'spam') error.textContent = 'Message blocked by anti-spam.';");
+        html.AppendLine($"              else error.textContent = '{JsString(defaultError)}';");
         html.AppendLine("            }");
         html.AppendLine("            throw new Error('send_failed');");
         html.AppendLine("          }");
         html.AppendLine("          form.reset();");
         html.AppendLine("          if (success) success.hidden = false;");
         html.AppendLine("        } catch (e) {");
-        html.AppendLine("          if (error && (!error.textContent || error.textContent === 'Wrong. Come back later.')) error.textContent = 'Network/CORS error. Try again later.';");
+        html.AppendLine($"          if (error && (!error.textContent || error.textContent === '{JsString(defaultError)}')) error.textContent = '{JsString(networkError)}';");
         html.AppendLine("          if (error) error.hidden = false;");
         html.AppendLine("        }");
         html.AppendLine("      });");
@@ -504,8 +513,9 @@ public class PublishController : ControllerBase
         return html.ToString();
     }
 
-    private static void AppendBlockHtml(StringBuilder html, BuilderBlockRequest block, Guid siteId)
+    private static void AppendBlockHtml(StringBuilder html, BuilderBlockRequest block, Guid siteId, string language, string accentColor)
     {
+        var isRu = language == "ru";
         var type = NormalizeType(block.Type);
         if (string.IsNullOrWhiteSpace(type))
         {
@@ -521,40 +531,50 @@ public class PublishController : ControllerBase
         switch (type)
         {
             case "section":
-                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><section><h3>{EscapeHtml(NormalizeDisplayText(block.Content, "Section"))}</h3></section></div>");
+                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><section><h3>{EscapeHtml(NormalizeDisplayText(block.Content, isRu ? "Секция" : "Section"))}</h3></section></div>");
                 break;
             case "heading":
-                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><h2>{EscapeHtml(NormalizeDisplayText(block.Content, "Heading"))}</h2></div>");
+                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><h2>{EscapeHtml(NormalizeDisplayText(block.Content, isRu ? "Заголовок" : "Heading"))}</h2></div>");
                 break;
             case "text":
-                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><p>{EscapeHtml(NormalizeDisplayText(block.Content, "Text"))}</p></div>");
+                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><p>{EscapeHtml(NormalizeDisplayText(block.Content, isRu ? "Текст" : "Text"))}</p></div>");
                 break;
             case "image":
                 html.AppendLine($"    <div class=\"{effectClass}\" style=\"text-align:{align};\"><img src=\"{EscapeHtml(block.Content ?? string.Empty)}\" alt=\"\"></div>");
                 break;
             case "button":
             {
-                var label = EscapeHtml(NormalizeDisplayText(block.Content, "Button"));
+                var label = EscapeHtml(NormalizeDisplayText(block.Content, isRu ? "Кнопка" : "Button"));
                 var url = EscapeHtml(block.Url ?? "#");
                 var py = Math.Clamp(block.PaddingY ?? 8, 4, 40);
                 var px = Math.Clamp(block.PaddingX ?? 16, 8, 80);
-                var buttonColor = SafeColor(block.ButtonColor, "#2563eb")!;
+                var buttonColor = SafeColor(block.ButtonColor, accentColor)!;
                 html.AppendLine($"    <div style=\"text-align:{align};\"><a href=\"{url}\" target=\"_blank\" rel=\"noopener noreferrer\" class=\"button-link {effectClass}\" style=\"padding:{py}px {px}px;background:{EscapeHtml(buttonColor)};color:#fff\">{label}</a></div>");
                 break;
             }
             case "contactForm":
             {
-                var submitLabel = EscapeHtml(NormalizeDisplayText(block.SubmitLabel, "Отправить"));
+                var submitLabel = EscapeHtml(NormalizeDisplayText(block.SubmitLabel, isRu ? "Отправить" : "Send"));
                 html.AppendLine($"    <div class=\"contact-form-shell {effectClass}\" style=\"text-align:{align};\">");
                 html.AppendLine($"      <form class=\"sb-contact-form\" data-site-id=\"{siteId}\">");
-                html.AppendLine("        <input type=\"text\" name=\"name\" placeholder=\"Ваше имя\" required>");
-                html.AppendLine("        <input type=\"email\" name=\"email\" placeholder=\"Ваш email\" required>");
-                html.AppendLine("        <textarea name=\"message\" placeholder=\"Сообщение\" rows=\"5\" required></textarea>");
-                html.AppendLine("        <input type=\"text\" name=\"middle_name\" autocomplete=\"off\" tabindex=\"-1\" class=\"sb-hp\">");
-                html.AppendLine($"        <button type=\"submit\">{submitLabel}</button>");
+                html.AppendLine(isRu
+                    ? "        <input type=\"text\" name=\"name\" placeholder=\"Ваше имя\" required>"
+                    : "        <input type=\"text\" name=\"name\" placeholder=\"Your name\" required>");
+                html.AppendLine(isRu
+                    ? "        <input type=\"email\" name=\"email\" placeholder=\"Ваш email\" required>"
+                    : "        <input type=\"email\" name=\"email\" placeholder=\"Your email\" required>");
+                html.AppendLine(isRu
+                    ? "        <textarea name=\"message\" placeholder=\"Сообщение\" rows=\"5\" required></textarea>"
+                    : "        <textarea name=\"message\" placeholder=\"Message\" rows=\"5\" required></textarea>");
+                html.AppendLine("        <input type=\"text\" name=\"honeypot\" autocomplete=\"off\" tabindex=\"-1\" class=\"sb-hp\">");
+                html.AppendLine($"        <button type=\"submit\" style=\"background:{EscapeHtml(accentColor)}\">{submitLabel}</button>");
                 html.AppendLine("      </form>");
-                html.AppendLine("      <div class=\"sb-contact-success\" hidden>So beautiful that it went</div>");
-                html.AppendLine("      <div class=\"sb-contact-error\" hidden>Wrong. Come back later.</div>");
+                html.AppendLine(isRu
+                    ? "      <div class=\"sb-contact-success\" hidden>Сообщение отправлено.</div>"
+                    : "      <div class=\"sb-contact-success\" hidden>Message sent.</div>");
+                html.AppendLine(isRu
+                    ? "      <div class=\"sb-contact-error\" hidden>Ошибка. Попробуйте позже.</div>"
+                    : "      <div class=\"sb-contact-error\" hidden>Error. Try again later.</div>");
                 html.AppendLine("    </div>");
                 break;
             }
@@ -618,12 +638,29 @@ public class PublishController : ControllerBase
         return WebUtility.HtmlEncode(text ?? string.Empty);
     }
 
+    private static string SafeLanguage(string? value)
+    {
+        return string.Equals(value?.Trim(), "en", StringComparison.OrdinalIgnoreCase) ? "en" : "ru";
+    }
+
+    private static string JsString(string value)
+    {
+        return (value ?? string.Empty)
+            .Replace("\\", "\\\\")
+            .Replace("'", "\\'");
+    }
+
     private static string NormalizeDisplayText(string? value, string fallback = "")
     {
         var source = (value ?? string.Empty).Trim();
         if (string.IsNullOrWhiteSpace(source))
         {
             return fallback;
+        }
+
+        if (!LooksLikeMojibake(source))
+        {
+            return source;
         }
 
         var candidates = new List<string> { source };
@@ -634,6 +671,15 @@ public class PublishController : ControllerBase
             .Distinct()
             .OrderByDescending(GetReadableScore)
             .FirstOrDefault() ?? source;
+    }
+
+    private static bool LooksLikeMojibake(string text)
+    {
+        return text.Contains('�')
+               || text.Contains("Ð")
+               || text.Contains("Ñ")
+               || text.Contains("Ã")
+               || text.Contains("Â");
     }
 
     private static string TryDecodeMojibake(string input, Encoding sourceEncoding)
@@ -677,15 +723,10 @@ public class PublishController : ControllerBase
             }
         }
 
-        if (text.Contains("Ð") || text.Contains("Ñ") || text.Contains("Р") || text.Contains("С"))
-        {
-            score -= 4;
-        }
-
         return score;
     }
 
-    private static string BuildExportCss(string backgroundColor)
+    private static string BuildExportCss(string backgroundColor, string accentColor, bool animateBlocks)
     {
         return $@"html, body {{ height: 100%; }}
 body {{
@@ -717,7 +758,7 @@ a.button-link {{
   display: inline-block;
   border-radius: 999px;
   border: none;
-  background: #2563eb;
+  background: {accentColor};
   color: #fff;
   text-decoration: none;
   cursor: pointer;
@@ -750,7 +791,7 @@ a.button-link {{
   border-radius: 12px;
   padding: .7rem 1rem;
   font-weight: 600;
-  background: linear-gradient(135deg, #2563eb, #22c55e);
+  background: {accentColor};
   color: #fff;
   cursor: pointer;
 }}
@@ -768,7 +809,9 @@ a.button-link {{
   font-size: .95rem;
 }}
 .sb-contact-success {{ color: #34d399; }}
-.sb-contact-error {{ color: #fca5a5; }}";
+.sb-contact-error {{ color: #fca5a5; }}
+{(animateBlocks ? @".contact-form-shell, main > div { animation: sb-fade-up .35s ease-out both; }
+@keyframes sb-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }" : string.Empty)}";
     }
 
     private static string StripScriptTags(string html)

@@ -83,6 +83,7 @@ public class SitesController : Controller
     }
 
     [HttpGet("sites/messages/{siteId:guid}")]
+    [HttpGet("Sites/{siteId:guid}/Messages")]
     public async Task<IActionResult> Messages(Guid siteId)
     {
         var userIdRaw = User.FindFirstValue("app_user_id");

@@ -14,7 +14,6 @@ public class ContactController : ControllerBase
     private const int MinMessageLength = 5;
     private const int MaxMessageLength = 2000;
     private const int IpCooldownMinutes = 2;
-    private const int MaxIpMessagesPerDay = 20;
     private const int MaxSiteMessagesPerDayFree = 50;
 
     private readonly ApplicationDbContext _db;
@@ -24,13 +23,14 @@ public class ContactController : ControllerBase
         _db = db;
     }
 
-    public record SendContactRequest(Guid SiteId, string? Name, string? Email, string? Message, string? WebsiteField);
-    public record SendContactFormRequest(string? SiteId, string? Name, string? Email, string? Message, string? WebsiteField);
+    public record SendContactRequest(Guid SiteId, string? Name, string? Email, string? Message, string? Honeypot, string? WebsiteField);
+    public record SendContactFormRequest(string? SiteId, string? Name, string? Email, string? Message, string? Honeypot, string? WebsiteField);
 
     [HttpPost("send")]
     public async Task<IActionResult> Send([FromBody] SendContactRequest request)
     {
-        return await HandleSend(request.SiteId, request.Name, request.Email, request.Message, request.WebsiteField);
+        var honeypot = string.IsNullOrWhiteSpace(request.Honeypot) ? request.WebsiteField : request.Honeypot;
+        return await HandleSend(request.SiteId, request.Name, request.Email, request.Message, honeypot);
     }
 
     [HttpPost("send-simple")]
@@ -41,10 +41,11 @@ public class ContactController : ControllerBase
             return BadRequest(new { ok = false, reason = "site_not_found" });
         }
 
-        return await HandleSend(siteId, request.Name, request.Email, request.Message, request.WebsiteField);
+        var honeypot = string.IsNullOrWhiteSpace(request.Honeypot) ? request.WebsiteField : request.Honeypot;
+        return await HandleSend(siteId, request.Name, request.Email, request.Message, honeypot);
     }
 
-    private async Task<IActionResult> HandleSend(Guid siteId, string? rawName, string? rawEmail, string? rawMessage, string? websiteField)
+    private async Task<IActionResult> HandleSend(Guid siteId, string? rawName, string? rawEmail, string? rawMessage, string? honeypot)
     {
         var site = await _db.Sites
             .AsNoTracking()
@@ -58,7 +59,7 @@ public class ContactController : ControllerBase
         var ip = GetSenderIp();
         var todayUtc = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
 
-        if (!string.IsNullOrWhiteSpace(websiteField))
+        if (!string.IsNullOrWhiteSpace(honeypot))
         {
             return StatusCode(StatusCodes.Status429TooManyRequests, new { ok = false, reason = "spam" });
         }
@@ -87,14 +88,6 @@ public class ContactController : ControllerBase
             .AsNoTracking()
             .AnyAsync(m => m.SiteId == site.Id && m.SenderIp == ip && m.CreatedAt >= recentThreshold);
         if (hasRecentFromIp)
-        {
-            return StatusCode(StatusCodes.Status429TooManyRequests, new { ok = false, reason = "rate_limit" });
-        }
-
-        var ipCountToday = await _db.ContactMessages
-            .AsNoTracking()
-            .CountAsync(m => m.SiteId == site.Id && m.SenderIp == ip && m.CreatedAt >= todayUtc);
-        if (ipCountToday >= MaxIpMessagesPerDay)
         {
             return StatusCode(StatusCodes.Status429TooManyRequests, new { ok = false, reason = "rate_limit" });
         }
