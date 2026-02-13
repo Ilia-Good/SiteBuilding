@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SiteBuilder.Data;
+using SiteBuilder.Models;
 using SiteBuilder.Services;
 using System.Security.Claims;
 using System.Text.Json;
@@ -11,6 +12,8 @@ namespace SiteBuilder.Controllers;
 [Authorize]
 public class BuilderController : Controller
 {
+    private const int DraftHours = 48;
+
     private readonly ApplicationDbContext _db;
     private readonly HtmlTemplateGenerator _templateGenerator;
 
@@ -78,6 +81,49 @@ public class BuilderController : Controller
         {
             return StatusCode(StatusCodes.Status500InternalServerError, new { error = "state_invalid" });
         }
+    }
+
+    [HttpPost("api/builder/state/{slug}")]
+    public async Task<IActionResult> SaveSiteState(string slug, [FromBody] SaveBuilderStateRequest request)
+    {
+        var userIdRaw = User.FindFirstValue("app_user_id");
+        if (!Guid.TryParse(userIdRaw, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var normalizedSlug = (slug ?? string.Empty).Trim().ToLowerInvariant();
+        if (string.IsNullOrWhiteSpace(normalizedSlug))
+        {
+            return BadRequest(new { error = "slug_required" });
+        }
+
+        if (request.State is null)
+        {
+            return BadRequest(new { error = "state_required" });
+        }
+
+        var now = DateTime.UtcNow;
+        var site = await _db.Sites.FirstOrDefaultAsync(s => s.OwnerUserId == userId && s.SiteName == normalizedSlug);
+        if (site is null)
+        {
+            site = new Site
+            {
+                Id = Guid.NewGuid(),
+                OwnerUserId = userId,
+                SiteName = normalizedSlug,
+                CreatedAt = now,
+                ExpiresAt = now.AddHours(DraftHours),
+                IsPaid = false,
+                IsActive = true
+            };
+            _db.Sites.Add(site);
+        }
+
+        site.BuilderStateJson = JsonSerializer.Serialize(request.State);
+        await _db.SaveChangesAsync();
+
+        return Ok(new { success = true });
     }
 
     /// <summary>
@@ -151,4 +197,9 @@ public class TemplateRequest
 {
     public string? SiteName { get; set; }
     public string? SiteDescription { get; set; }
+}
+
+public class SaveBuilderStateRequest
+{
+    public PageBuilderState? State { get; set; }
 }
