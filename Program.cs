@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.OAuth;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using SiteBuilder.Data;
@@ -16,27 +17,15 @@ builder.Configuration.AddEnvironmentVariables();
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient();
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "X-CSRF-TOKEN";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Default")));
-
-var corsOrigins = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-var explicitOrigin = builder.Configuration["ContactApi:AllowedOrigin"];
-if (!string.IsNullOrWhiteSpace(explicitOrigin))
-{
-    corsOrigins.Add(explicitOrigin.Trim().TrimEnd('/'));
-}
-
-var pagesBaseUrl = builder.Configuration["GitHubPublish:PagesBaseUrl"];
-if (Uri.TryCreate(pagesBaseUrl, UriKind.Absolute, out var pagesUri))
-{
-    corsOrigins.Add($"{pagesUri.Scheme}://{pagesUri.Host}");
-}
-
-if (builder.Environment.IsDevelopment())
-{
-    corsOrigins.Add("https://localhost:5001");
-    corsOrigins.Add("http://localhost:5000");
-}
 
 builder.Services.AddCors(options =>
 {
@@ -52,9 +41,7 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>
 {
-    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
-    options.KnownNetworks.Clear();
-    options.KnownProxies.Clear();
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost;
 });
 
 var googleClientId = builder.Configuration["GOOGLE_CLIENT_ID"];
@@ -161,7 +148,6 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
     db.Database.Migrate();
-    db.Database.ExecuteSqlRaw(@"ALTER TABLE ""Sites"" ADD COLUMN IF NOT EXISTS ""BuilderStateJson"" text;");
 }
 
 // Configure the HTTP request pipeline.

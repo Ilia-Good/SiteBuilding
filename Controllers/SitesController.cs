@@ -52,6 +52,7 @@ public class SitesController : Controller
     }
 
     [HttpPost("sites/delete/{id:guid}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(Guid id)
     {
         var userIdRaw = User.FindFirstValue("app_user_id");

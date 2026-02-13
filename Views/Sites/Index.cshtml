@@ -61,6 +61,7 @@ else
                             <a class="btn btn-sm btn-outline-secondary" href="/builder?copyFrom=@site.SiteName">Копия</a>
                             <a class="btn btn-sm btn-outline-info" asp-controller="Sites" asp-action="Messages" asp-route-siteId="@site.Id">Сообщения</a>
                             <form method="post" asp-controller="Sites" asp-action="Delete" asp-route-id="@site.Id">
+                                @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
                             </form>
                         </div>

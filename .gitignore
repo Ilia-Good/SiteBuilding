@@ -1,0 +1,21 @@
+# Build outputs
+bin/
+obj/
+
+# User-specific files
+.vs/
+.vscode/
+*.user
+*.suo
+
+# Local databases and secrets
+app.db
+*.db-shm
+*.db-wal
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db

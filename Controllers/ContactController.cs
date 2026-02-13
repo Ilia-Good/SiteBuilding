@@ -111,16 +111,6 @@ public class ContactController : ControllerBase
 
     private string GetSenderIp()
     {
-        var fromHeader = Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(fromHeader))
-        {
-            var first = fromHeader.Split(',')[0].Trim();
-            if (first.Length <= 64)
-            {
-                return first;
-            }
-        }
-
         var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         return ip.Length <= 64 ? ip : ip.Substring(0, 64);
     }

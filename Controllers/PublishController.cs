@@ -70,6 +70,7 @@ public class PublishController : ControllerBase
     );
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> Publish([FromBody] PublishRequest request)
     {
         try

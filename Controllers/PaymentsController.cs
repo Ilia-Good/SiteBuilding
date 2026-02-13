@@ -17,6 +17,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost("mark-paid/{siteId:guid}")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkPaid(Guid siteId)
     {
         var userIdRaw = User.FindFirstValue("app_user_id");
