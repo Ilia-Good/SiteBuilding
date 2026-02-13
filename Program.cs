@@ -9,8 +9,10 @@ using SiteBuilder.Data;
 using SiteBuilder.Middleware;
 using SiteBuilder.Models;
 using SiteBuilder.Services;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 builder.Configuration.AddEnvironmentVariables();
 

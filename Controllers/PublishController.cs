@@ -352,17 +352,17 @@ public class PublishController : ControllerBase
 
     private static string BuildFinalHtml(BuilderStateRequest state, Guid siteId, string apiBaseUrl)
     {
-        var title = state.SiteTitle?.Trim();
+        var title = NormalizeDisplayText(state.SiteTitle);
         if (string.IsNullOrWhiteSpace(title))
         {
             title = "My site";
         }
 
         var titleColor = SafeColor(state.SiteTitleColor, "#f8fafc")!;
-        var headerText = state.HeaderText?.Trim() ?? string.Empty;
+        var headerText = NormalizeDisplayText(state.HeaderText);
         var headerAlign = SafeAlign(state.HeaderAlign);
         var headerColor = SafeColor(state.HeaderColor, "#e5e7eb")!;
-        var footerText = state.FooterText?.Trim() ?? string.Empty;
+        var footerText = NormalizeDisplayText(state.FooterText);
         var footerAlign = SafeAlign(state.FooterAlign);
         var footerColor = SafeColor(state.FooterColor, "#e5e7eb")!;
         var avatarUrl = state.AvatarUrl?.Trim() ?? string.Empty;
@@ -444,6 +444,7 @@ public class PublishController : ControllerBase
         html.AppendLine("        try {");
         html.AppendLine("          var resp = null;");
         html.AppendLine("          var lastNetworkError = null;");
+        html.AppendLine("          var lastHttpResp = null;");
         html.AppendLine("          for (var i = 0; i < endpoints.length; i++) {");
         html.AppendLine("            try {");
         html.AppendLine("              if (endpoints[i].indexOf('send-simple') !== -1) {");
@@ -456,12 +457,22 @@ public class PublishController : ControllerBase
         html.AppendLine("                  body: JSON.stringify(payload)");
         html.AppendLine("                });");
         html.AppendLine("              }");
-        html.AppendLine("              break;");
+        html.AppendLine("              if (resp && resp.ok) {");
+        html.AppendLine("                break;");
+        html.AppendLine("              }");
+        html.AppendLine("              lastHttpResp = resp;");
+        html.AppendLine("              resp = null;");
         html.AppendLine("            } catch (networkErr) {");
         html.AppendLine("              lastNetworkError = networkErr;");
         html.AppendLine("            }");
         html.AppendLine("          }");
-        html.AppendLine("          if (!resp) throw (lastNetworkError || new Error('network_error'));");
+        html.AppendLine("          if (!resp) {");
+        html.AppendLine("            if (lastHttpResp) {");
+        html.AppendLine("              resp = lastHttpResp;");
+        html.AppendLine("            } else {");
+        html.AppendLine("              throw (lastNetworkError || new Error('network_error'));");
+        html.AppendLine("            }");
+        html.AppendLine("          }");
         html.AppendLine("          if (!resp.ok) {");
         html.AppendLine("            var problem = null;");
         html.AppendLine("            try { problem = await resp.json(); } catch (_) { }");
@@ -510,20 +521,20 @@ public class PublishController : ControllerBase
         switch (type)
         {
             case "section":
-                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><section><h3>{EscapeHtml(block.Content ?? "Section")}</h3></section></div>");
+                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><section><h3>{EscapeHtml(NormalizeDisplayText(block.Content, "Section"))}</h3></section></div>");
                 break;
             case "heading":
-                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><h2>{EscapeHtml(block.Content ?? "Heading")}</h2></div>");
+                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><h2>{EscapeHtml(NormalizeDisplayText(block.Content, "Heading"))}</h2></div>");
                 break;
             case "text":
-                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><p>{EscapeHtml(block.Content ?? "Text")}</p></div>");
+                html.AppendLine($"    <div class=\"{effectClass}\" style=\"{style}\"><p>{EscapeHtml(NormalizeDisplayText(block.Content, "Text"))}</p></div>");
                 break;
             case "image":
                 html.AppendLine($"    <div class=\"{effectClass}\" style=\"text-align:{align};\"><img src=\"{EscapeHtml(block.Content ?? string.Empty)}\" alt=\"\"></div>");
                 break;
             case "button":
             {
-                var label = EscapeHtml(block.Content ?? "Button");
+                var label = EscapeHtml(NormalizeDisplayText(block.Content, "Button"));
                 var url = EscapeHtml(block.Url ?? "#");
                 var py = Math.Clamp(block.PaddingY ?? 8, 4, 40);
                 var px = Math.Clamp(block.PaddingX ?? 16, 8, 80);
@@ -533,7 +544,7 @@ public class PublishController : ControllerBase
             }
             case "contactForm":
             {
-                var submitLabel = EscapeHtml(block.SubmitLabel ?? "Отправить");
+                var submitLabel = EscapeHtml(NormalizeDisplayText(block.SubmitLabel, "Отправить"));
                 html.AppendLine($"    <div class=\"contact-form-shell {effectClass}\" style=\"text-align:{align};\">");
                 html.AppendLine($"      <form class=\"sb-contact-form\" data-site-id=\"{siteId}\">");
                 html.AppendLine("        <input type=\"text\" name=\"name\" placeholder=\"Ваше имя\" required>");
@@ -605,6 +616,73 @@ public class PublishController : ControllerBase
     private static string EscapeHtml(string text)
     {
         return WebUtility.HtmlEncode(text ?? string.Empty);
+    }
+
+    private static string NormalizeDisplayText(string? value, string fallback = "")
+    {
+        var source = (value ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(source))
+        {
+            return fallback;
+        }
+
+        var candidates = new List<string> { source };
+        candidates.Add(TryDecodeMojibake(source, Encoding.Latin1));
+        candidates.Add(TryDecodeMojibake(source, Encoding.GetEncoding(1251)));
+
+        return candidates
+            .Distinct()
+            .OrderByDescending(GetReadableScore)
+            .FirstOrDefault() ?? source;
+    }
+
+    private static string TryDecodeMojibake(string input, Encoding sourceEncoding)
+    {
+        try
+        {
+            var bytes = sourceEncoding.GetBytes(input);
+            return Encoding.UTF8.GetString(bytes).Trim();
+        }
+        catch
+        {
+            return input;
+        }
+    }
+
+    private static int GetReadableScore(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return int.MinValue;
+        }
+
+        var score = 0;
+        foreach (var ch in text)
+        {
+            if ((ch >= 'А' && ch <= 'я') || ch == 'Ё' || ch == 'ё')
+            {
+                score += 3;
+            }
+            else if (char.IsLetterOrDigit(ch))
+            {
+                score += 1;
+            }
+            else if (char.IsWhiteSpace(ch) || ch == '.' || ch == ',' || ch == '!' || ch == '?' || ch == '-' || ch == ':')
+            {
+                score += 1;
+            }
+            else if (ch == '�' || ch == '?')
+            {
+                score -= 3;
+            }
+        }
+
+        if (text.Contains("Ð") || text.Contains("Ñ") || text.Contains("Р") || text.Contains("С"))
+        {
+            score -= 4;
+        }
+
+        return score;
     }
 
     private static string BuildExportCss(string backgroundColor)
