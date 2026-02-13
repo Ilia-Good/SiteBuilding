@@ -25,13 +25,30 @@ public class ContactController : ControllerBase
     }
 
     public record SendContactRequest(Guid SiteId, string? Name, string? Email, string? Message, string? WebsiteField);
+    public record SendContactFormRequest(string? SiteId, string? Name, string? Email, string? Message, string? WebsiteField);
 
     [HttpPost("send")]
     public async Task<IActionResult> Send([FromBody] SendContactRequest request)
     {
+        return await HandleSend(request.SiteId, request.Name, request.Email, request.Message, request.WebsiteField);
+    }
+
+    [HttpPost("send-simple")]
+    public async Task<IActionResult> SendSimple([FromForm] SendContactFormRequest request)
+    {
+        if (!Guid.TryParse(request.SiteId, out var siteId))
+        {
+            return BadRequest(new { ok = false, reason = "site_not_found" });
+        }
+
+        return await HandleSend(siteId, request.Name, request.Email, request.Message, request.WebsiteField);
+    }
+
+    private async Task<IActionResult> HandleSend(Guid siteId, string? rawName, string? rawEmail, string? rawMessage, string? websiteField)
+    {
         var site = await _db.Sites
             .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == request.SiteId);
+            .FirstOrDefaultAsync(s => s.Id == siteId);
         if (site is null || !site.IsActive || site.PublishedAt is null)
         {
             return NotFound(new { ok = false, reason = "site_not_found" });
@@ -41,14 +58,14 @@ public class ContactController : ControllerBase
         var ip = GetSenderIp();
         var todayUtc = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
 
-        if (!string.IsNullOrWhiteSpace(request.WebsiteField))
+        if (!string.IsNullOrWhiteSpace(websiteField))
         {
             return StatusCode(StatusCodes.Status429TooManyRequests, new { ok = false, reason = "spam" });
         }
 
-        var name = (request.Name ?? string.Empty).Trim();
-        var email = (request.Email ?? string.Empty).Trim();
-        var message = (request.Message ?? string.Empty).Trim();
+        var name = (rawName ?? string.Empty).Trim();
+        var email = (rawEmail ?? string.Empty).Trim();
+        var message = (rawMessage ?? string.Empty).Trim();
 
         if (string.IsNullOrWhiteSpace(name) || name.Length > 100)
         {
