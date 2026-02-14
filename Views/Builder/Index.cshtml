@@ -1,4 +1,4 @@
-@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     ViewData["Title"] = "Builder";
     var csrfToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
@@ -1571,8 +1571,9 @@ a.button-link {
 
             if (!loadedFromServer) {
                 if (editSlug || copyFromSlug) {
-                    // Fallback only when opening existing/copy mode and server state is unavailable.
-                    loadState();
+                    // Editing/copying mode must not open template/new-site flow.
+                    hadSavedState = true;
+                    setPublishStatus('Не удалось загрузить проект с сервера. Откройте список сайтов и попробуйте снова.', 'is-error');
                 } else {
                     // New site mode: do not reuse previous local draft automatically.
                     localStorage.removeItem('builder_state');
@@ -1582,12 +1583,14 @@ a.button-link {
             renderEditors();
             renderPreview();
 
-            if (!hadSavedState) {
+            if (!hadSavedState && !editSlug && !copyFromSlug) {
                 showTemplateModal();
             }
         })();
     </script>
 }
+
+
 
 
 

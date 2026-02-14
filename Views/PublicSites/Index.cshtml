@@ -33,7 +33,7 @@ else
                 <div class="card h-100">
                     <div class="card-body d-flex flex-column">
                         <h5 class="card-title">@site.SiteName</h5>
-                        <div class="text-muted small mb-3">Опубликован: @site.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
+                        <div class="text-muted small mb-3"><span data-i18n="all_sites_published">Опубликован</span>: @site.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
                         <a class="btn btn-sm btn-primary mt-auto" href="@site.Url" target="_blank" rel="noopener noreferrer" data-i18n="all_sites_open">Открыть сайт</a>
                     </div>
                 </div>

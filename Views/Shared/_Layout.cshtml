@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="ru">
@@ -101,24 +101,24 @@
         <div class="ui-settings-title" data-i18n="settings_title">Настройки интерфейса</div>
         <label class="ui-settings-label" for="uiLanguage" data-i18n="settings_language">Язык</label>
         <select id="uiLanguage" class="form-select form-select-sm mb-2">
-            <option value="ru">Русский</option>
-            <option value="en">English</option>
-            <option value="es">Español</option>
+            <option value="ru" data-i18n="lang_ru">Русский</option>
+            <option value="en" data-i18n="lang_en">English</option>
+            <option value="es" data-i18n="lang_es">Español</option>
         </select>
 
         <label class="ui-settings-label" for="uiTheme" data-i18n="settings_theme">Фон</label>
         <select id="uiTheme" class="form-select form-select-sm mb-2">
-            <option value="aurora">Aurora</option>
-            <option value="sunset">Sunset</option>
-            <option value="ocean">Ocean</option>
-            <option value="mono">Mono</option>
+            <option value="aurora" data-i18n="theme_aurora">Aurora</option>
+            <option value="sunset" data-i18n="theme_sunset">Sunset</option>
+            <option value="ocean" data-i18n="theme_ocean">Ocean</option>
+            <option value="mono" data-i18n="theme_mono">Mono</option>
         </select>
 
         <label class="ui-settings-label" for="uiEffects" data-i18n="settings_effects">Эффекты</label>
         <select id="uiEffects" class="form-select form-select-sm mb-1">
-            <option value="none">Нет</option>
-            <option value="glass">Стекло</option>
-            <option value="glow">Свечение</option>
+            <option value="none" data-i18n="fx_none">Нет</option>
+            <option value="glass" data-i18n="fx_glass">Стекло</option>
+            <option value="glow" data-i18n="fx_glow">Свечение</option>
         </select>
         <div class="ui-settings-hint" data-i18n="settings_effects_hint">Стекло: мягкие полупрозрачные панели. Свечение: яркий акцент.</div>
 
@@ -141,3 +141,5 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
+

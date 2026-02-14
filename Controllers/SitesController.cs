@@ -12,6 +12,7 @@ namespace SiteBuilder.Controllers;
 public class SitesController : Controller
 {
     private const int MaxSitesPerUser = 3;
+    private const int MaxEditsPerDayPerSite = 3;
     private readonly ApplicationDbContext _db;
     private readonly ILogger<SitesController> _logger;
 
@@ -36,6 +37,23 @@ public class SitesController : Controller
             .AsNoTracking()
             .ToListAsync();
 
+        var siteIds = sites.Select(s => s.Id).ToList();
+        var today = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, DateTime.UtcNow.Day, 0, 0, 0, DateTimeKind.Utc);
+        var usageToday = siteIds.Count == 0
+            ? new List<SiteDailyUsage>()
+            : await _db.SiteDailyUsages
+                .AsNoTracking()
+                .Where(u => siteIds.Contains(u.SiteId) && u.Date == today)
+                .ToListAsync();
+
+        var usedEdits = usageToday
+            .GroupBy(u => u.SiteId)
+            .ToDictionary(g => g.Key, g => g.Sum(x => x.EditsCount));
+        var remainingEdits = siteIds.ToDictionary(
+            id => id,
+            id => Math.Max(0, MaxEditsPerDayPerSite - (usedEdits.TryGetValue(id, out var used) ? used : 0))
+        );
+
         ViewData["Title"] = "Мои сайты";
         var canCreate = sites.Count < MaxSitesPerUser;
         var model = new SitesIndexViewModel
@@ -43,6 +61,11 @@ public class SitesController : Controller
             Sites = sites,
             MaxSites = MaxSitesPerUser,
             CanCreate = canCreate,
+            UsedSitesCount = sites.Count,
+            RemainingSitesCount = Math.Max(0, MaxSitesPerUser - sites.Count),
+            MaxEditsPerDayPerSite = MaxEditsPerDayPerSite,
+            UsedEditsTodayBySiteId = usedEdits,
+            RemainingEditsTodayBySiteId = remainingEdits,
             LimitMessage = canCreate
                 ? string.Empty
                 : $"У вас уже есть {MaxSitesPerUser} сайта(ов). Измените существующий или удалите один."
