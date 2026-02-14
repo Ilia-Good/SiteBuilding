@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="ru">
@@ -88,6 +88,10 @@
         <div class="d-flex flex-wrap gap-3 small text-muted">
             <a data-i18n="footer_privacy" asp-controller="Home" asp-action="Privacy">Конфиденциальность</a>
             <a data-i18n="footer_terms" asp-controller="Home" asp-action="Terms">Условия</a>
+            <a asp-controller="Home" asp-action="About">О проекте</a>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a>
+            <a asp-controller="Home" asp-action="Guides">Гайды</a>
+            <a asp-controller="Home" asp-action="Contact">Контакты</a>
             <a data-i18n="footer_public_sites" href="/explore">Публичные сайты</a>
         </div>
     </footer>

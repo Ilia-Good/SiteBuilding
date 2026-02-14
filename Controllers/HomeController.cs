@@ -42,6 +42,30 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpGet("about")]
+    public IActionResult About()
+    {
+        return View();
+    }
+
+    [HttpGet("faq")]
+    public IActionResult Faq()
+    {
+        return View();
+    }
+
+    [HttpGet("guides")]
+    public IActionResult Guides()
+    {
+        return View();
+    }
+
+    [HttpGet("contact")]
+    public IActionResult Contact()
+    {
+        return View();
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {

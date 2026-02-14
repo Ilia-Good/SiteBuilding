@@ -359,3 +359,77 @@ li {
   --bs-table-hover-color: #f8fafc;
   --bs-table-hover-bg: rgba(96, 165, 250, 0.12);
 }
+
+.content-page {
+  max-width: 860px;
+  margin: 0 auto 1.2rem;
+  padding: 1.2rem 1.3rem;
+  border: 1px solid rgba(148, 163, 184, .22);
+  border-radius: .9rem;
+  background: rgba(10, 18, 32, .72);
+}
+
+.content-page h1 {
+  margin-bottom: .75rem;
+}
+
+.story-hero {
+  margin: .4rem auto 1.2rem;
+  max-width: 920px;
+  border-radius: 1.1rem;
+  padding: 1.4rem 1.3rem;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(34, 197, 94, .25), transparent 42%),
+    radial-gradient(circle at 80% 30%, rgba(59, 130, 246, .25), transparent 45%),
+    linear-gradient(145deg, rgba(17, 24, 39, .95), rgba(3, 7, 18, .96));
+  border: 1px solid rgba(148, 163, 184, .25);
+}
+
+.story-kicker {
+  display: inline-block;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #93c5fd;
+  margin-bottom: .35rem;
+}
+
+.story-grid,
+.guide-grid,
+.contact-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: .9rem;
+  margin-bottom: 1rem;
+}
+
+.story-card,
+.guide-card {
+  border: 1px solid rgba(148, 163, 184, .2);
+  border-radius: .85rem;
+  padding: .95rem 1rem;
+  background: rgba(10, 18, 32, .75);
+}
+
+.story-card h3,
+.guide-card h3 {
+  font-size: 1.02rem;
+  margin-bottom: .45rem;
+}
+
+.faq-list details {
+  border: 1px solid rgba(148, 163, 184, .25);
+  border-radius: .75rem;
+  padding: .65rem .8rem;
+  margin-bottom: .6rem;
+  background: rgba(10, 18, 32, .7);
+}
+
+.faq-list summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.faq-list p {
+  margin: .55rem 0 0;
+}
