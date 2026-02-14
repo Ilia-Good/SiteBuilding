@@ -2,23 +2,83 @@
     ViewData["Title"] = "О проекте";
 }
 
-<section class="story-hero">
-    <p class="story-kicker">Почему SiteBuilding</p>
-    <h1>Сделать сайт должно быть так же просто, как собрать плейлист</h1>
-    <p>SiteBuilding — это конструктор для людей, которым нужен понятный результат без долгих курсов и сложных панелей.</p>
+<section id="about" class="story-hero">
+    <p class="story-kicker" data-i18n="about_kicker">Почему SiteBuilding</p>
+    <h1 data-i18n="about_title">Сделать сайт должно быть так же просто, как собрать плейлист</h1>
+    <p data-i18n="about_lead">SiteBuilding — это конструктор для людей, которым нужен понятный результат без долгих курсов и сложных панелей.</p>
 </section>
 
-<section class="story-grid">
+<section class="story-grid mb-4">
     <article class="story-card">
-        <h3>1. Идея</h3>
-        <p>Вы выбираете структуру, добавляете тексты и изображения, а сервис собирает чистую страницу.</p>
+        <h3 data-i18n="about_step1_title">1. Идея</h3>
+        <p data-i18n="about_step1_text">Вы выбираете структуру, добавляете тексты и изображения, а сервис собирает чистую страницу.</p>
     </article>
     <article class="story-card">
-        <h3>2. Публикация</h3>
-        <p>Один клик — и сайт доступен по ссылке. Без отдельного DevOps и ручных деплоев.</p>
+        <h3 data-i18n="about_step2_title">2. Публикация</h3>
+        <p data-i18n="about_step2_text">Один клик — и сайт доступен по ссылке. Без отдельного DevOps и ручных деплоев.</p>
     </article>
     <article class="story-card">
-        <h3>3. Обратная связь</h3>
-        <p>Форма сообщений уже встроена: обращения приходят владельцу сайта в личный кабинет.</p>
+        <h3 data-i18n="about_step3_title">3. Обратная связь</h3>
+        <p data-i18n="about_step3_text">Форма сообщений уже встроена: обращения приходят владельцу сайта в личный кабинет.</p>
     </article>
+</section>
+
+<section id="guides" class="content-page mb-4">
+    <h2 data-i18n="guides_title">Гайды</h2>
+    <div class="guide-grid">
+        <article class="guide-card">
+            <h3 data-i18n="guide_1_title">Лендинг за 15 минут</h3>
+            <p data-i18n="guide_1_text">Структура: заголовок, блок ценности, CTA-кнопка, контактная форма.</p>
+        </article>
+        <article class="guide-card">
+            <h3 data-i18n="guide_2_title">Портфолио фрилансера</h3>
+            <p data-i18n="guide_2_text">Добавьте 3 ключевых проекта, короткий био-текст и кнопку «Связаться».</p>
+        </article>
+        <article class="guide-card">
+            <h3 data-i18n="guide_3_title">Сайт локального бизнеса</h3>
+            <p data-i18n="guide_3_text">Основные блоки: оффер, услуги, преимущества, контакты.</p>
+        </article>
+        <article class="guide-card">
+            <h3 data-i18n="guide_4_title">Страница мероприятия</h3>
+            <p data-i18n="guide_4_text">Дата, место, программа, кнопка регистрации и форма вопросов.</p>
+        </article>
+    </div>
+</section>
+
+<section id="faq" class="content-page mb-4">
+    <h2>FAQ</h2>
+    <div class="faq-list">
+        <details open>
+            <summary data-i18n="faq_1_q">Нужны ли навыки программирования?</summary>
+            <p data-i18n="faq_1_a">Нет. Конструктор рассчитан на тех, кто хочет быстро запустить сайт без кода.</p>
+        </details>
+        <details>
+            <summary data-i18n="faq_2_q">Можно ли редактировать сайт после публикации?</summary>
+            <p data-i18n="faq_2_a">Да. Открываете свой сайт в списке, меняете блоки и публикуете снова.</p>
+        </details>
+        <details>
+            <summary data-i18n="faq_3_q">Куда приходят сообщения из формы?</summary>
+            <p data-i18n="faq_3_a">В раздел «Сообщения» у владельца сайта. Там видны дата, имя, email, текст и IP.</p>
+        </details>
+        <details>
+            <summary data-i18n="faq_4_q">Почему форма может не отправляться?</summary>
+            <p data-i18n="faq_4_a">Чаще всего из-за антиспам-лимитов или некорректных полей.</p>
+        </details>
+    </div>
+</section>
+
+<section id="contact" class="content-page">
+    <h2 data-i18n="contact_title">Контакты</h2>
+    <div class="contact-cards">
+        <div class="guide-card">
+            <h3>Email</h3>
+            <p><a href="mailto:idoo4961@gmail.com">idoo4961@gmail.com</a></p>
+            <p class="text-muted" data-i18n="contact_email_note">Ответ обычно в течение 24 часов.</p>
+        </div>
+        <div class="guide-card">
+            <h3>Telegram</h3>
+            <p><a href="https://t.me/" target="_blank" rel="noopener noreferrer" data-i18n="contact_telegram_link">Написать в Telegram</a></p>
+            <p class="text-muted" data-i18n="contact_telegram_note">Для быстрых вопросов по запуску сайта.</p>
+        </div>
+    </div>
 </section>

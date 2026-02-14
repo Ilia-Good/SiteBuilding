@@ -35,7 +35,7 @@ public class PublicSitesController : Controller
             .AsNoTracking()
             .ToListAsync();
 
-        ViewData["Title"] = "Мини-сайты";
+        ViewData["Title"] = "Все сайты";
         return View(sites);
     }
 

@@ -36,17 +36,17 @@
             <rect x="592" y="210" width="64" height="14" rx="7" fill="#22c55e" opacity=".75" />
         </svg>
     </div>
-    <p class="lead mb-4">
+    <p class="lead mb-4" data-i18n="home_lead">
         Конструктор одностраничных сайтов из блоков: заголовки, текст, изображения, кнопки и секции.
     </p>
-    <a class="btn btn-primary btn-lg px-4" asp-controller="Builder" asp-action="Index">
+    <a class="btn btn-primary btn-lg px-4" data-i18n="home_open_builder" asp-controller="Builder" asp-action="Index">
         Открыть конструктор
     </a>
 </div>
 
 <div class="row mt-5">
     <div class="col-md-6 mb-4">
-        <h2 class="h4">Правила и ограничения</h2>
+        <h2 class="h4" data-i18n="home_rules_title">Правила и ограничения</h2>
         <ul class="home-list">
             <li>Максимум 3 сайта на пользователя. Новый сайт можно создать только после удаления одного из своих.</li>
             <li>Имя сайта должно быть уникальным для всех пользователей. Если имя занято — публикация запрещена.</li>
@@ -55,7 +55,7 @@
         </ul>
     </div>
     <div class="col-md-6 mb-4">
-        <h2 class="h4">Как это работает</h2>
+        <h2 class="h4" data-i18n="home_how_title">Как это работает</h2>
         <ol class="home-list">
             <li>Задайте название, шапку и футер.</li>
             <li>Добавьте блоки: заголовок, текст, изображение, кнопка, секция.</li>
@@ -69,8 +69,8 @@
 {
     <div class="mt-5">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-            <h2 class="h4 mb-0">Лучшие мини-сайты</h2>
-            <a class="btn btn-sm btn-outline-light" href="/explore">Смотреть все</a>
+            <h2 class="h4 mb-0" data-i18n="home_best_sites">Лучшие мини-сайты</h2>
+            <a class="btn btn-sm btn-outline-light" data-i18n="home_view_all" href="/explore">Смотреть все</a>
         </div>
         <div class="row">
             @foreach (var site in Model.FeaturedSites)
@@ -80,7 +80,7 @@
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">@site.SiteName</h5>
                             <div class="text-muted small mb-3">Опубликован: @site.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</div>
-                            <a class="btn btn-sm btn-primary mt-auto" href="@site.Url" target="_blank" rel="noopener noreferrer">Открыть</a>
+                            <a class="btn btn-sm btn-primary mt-auto" data-i18n="home_open" href="@site.Url" target="_blank" rel="noopener noreferrer">Открыть</a>
                         </div>
                     </div>
                 </div>
@@ -90,5 +90,5 @@
 }
 
 <div class="home-note mt-3">
-    <strong>Публикация:</strong> сайт автоматически размещается через GitHub Pages. Подождите пару минут после публикации.
+    <strong data-i18n="home_publish_label">Публикация:</strong> <span data-i18n="home_publish_text">сайт автоматически размещается через GitHub Pages. Подождите пару минут после публикации.</span>
 </div>

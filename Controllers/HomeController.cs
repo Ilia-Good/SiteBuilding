@@ -51,19 +51,19 @@ public class HomeController : Controller
     [HttpGet("faq")]
     public IActionResult Faq()
     {
-        return View();
+        return Redirect("/about#faq");
     }
 
     [HttpGet("guides")]
     public IActionResult Guides()
     {
-        return View();
+        return Redirect("/about#guides");
     }
 
     [HttpGet("contact")]
     public IActionResult Contact()
     {
-        return View();
+        return Redirect("/about#contact");
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

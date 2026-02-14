@@ -1,4 +1,4 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 @inject IConfiguration Configuration
 <!DOCTYPE html>
 <html lang="ru">
@@ -55,7 +55,7 @@
                     <div class="app-navbar-links d-flex flex-column flex-lg-row">
                         <a class="nav-link app-nav-btn" data-i18n="nav_home" asp-area="" asp-controller="Home" asp-action="Index">Главная</a>
                         <a class="nav-link app-nav-btn" data-i18n="nav_builder" asp-area="" asp-controller="Builder" asp-action="Index">Конструктор</a>
-                        <a class="nav-link app-nav-btn" data-i18n="nav_public" asp-area="" asp-controller="PublicSites" asp-action="Index">Мини-сайты</a>
+                        <a class="nav-link app-nav-btn" data-i18n="nav_all_sites" asp-area="" asp-controller="PublicSites" asp-action="Index">Все сайты</a>
                         <a class="nav-link app-nav-btn" data-i18n="nav_my_sites" asp-area="" asp-controller="Sites" asp-action="Index">Мои сайты</a>
                     </div>
                     <div class="app-navbar-actions d-flex align-items-stretch align-items-lg-center gap-2">
@@ -64,7 +64,7 @@
                             var email = User.FindFirstValue(ClaimTypes.Email);
                             var nick = string.IsNullOrWhiteSpace(email) ? "друг" : email.Split('@')[0];
                             @await Component.InvokeAsync("UserSitesMenu")
-                            <span class="app-user-email">Привет, @nick</span>
+                            <span class="app-user-email"><span data-i18n="hello">Привет</span>, @nick</span>
                             <form method="post" asp-controller="Account" asp-action="Logout">
                                 <button type="submit" class="btn btn-outline-light app-nav-btn" data-i18n="btn_logout">Выйти</button>
                             </form>
@@ -73,7 +73,7 @@
                         {
                             <a class="btn btn-outline-light app-nav-btn" data-i18n="btn_login_google" asp-controller="Account" asp-action="Login">Войти через Google</a>
                         }
-                        <button id="uiSettingsToggle" type="button" class="btn btn-outline-light app-nav-btn" data-i18n="btn_ui_settings">Вид</button>
+                        <button id="uiSettingsToggle" type="button" class="btn btn-outline-light app-nav-btn" data-i18n="btn_ui_settings">Настройки вида</button>
                     </div>
                 </div>
             </div>
@@ -84,16 +84,17 @@
             @RenderBody()
         </main>
     </div>
-    <footer class="container pb-4">
-        <div class="d-flex flex-wrap gap-3 small text-muted">
+    <footer class="container pb-4 app-footer">
+        <div class="app-footer-links small text-muted">
             <a data-i18n="footer_privacy" asp-controller="Home" asp-action="Privacy">Конфиденциальность</a>
             <a data-i18n="footer_terms" asp-controller="Home" asp-action="Terms">Условия</a>
-            <a asp-controller="Home" asp-action="About">О проекте</a>
-            <a asp-controller="Home" asp-action="Faq">FAQ</a>
-            <a asp-controller="Home" asp-action="Guides">Гайды</a>
-            <a asp-controller="Home" asp-action="Contact">Контакты</a>
-            <a data-i18n="footer_public_sites" href="/explore">Публичные сайты</a>
+            <a data-i18n="footer_about" href="/about#about">О проекте</a>
+            <a data-i18n="footer_faq" href="/about#faq">FAQ</a>
+            <a data-i18n="footer_guides" href="/about#guides">Гайды</a>
+            <a data-i18n="footer_contact" href="/about#contact">Контакты</a>
+            <a data-i18n="footer_all_sites" href="/explore">Все сайты</a>
         </div>
+        <div class="app-footer-copy">2026 ©Goods</div>
     </footer>
 
     <div id="uiSettingsMenu" class="ui-settings-menu d-none" aria-hidden="true">
@@ -114,16 +115,18 @@
         </select>
 
         <label class="ui-settings-label" for="uiEffects" data-i18n="settings_effects">Эффекты</label>
-        <select id="uiEffects" class="form-select form-select-sm mb-2">
-            <option value="none">Off</option>
-            <option value="glass">Glass</option>
-            <option value="glow">Glow</option>
+        <select id="uiEffects" class="form-select form-select-sm mb-1">
+            <option value="none">Нет</option>
+            <option value="glass">Стекло</option>
+            <option value="glow">Свечение</option>
         </select>
+        <div class="ui-settings-hint" data-i18n="settings_effects_hint">Стекло: мягкие полупрозрачные панели. Свечение: яркий акцент.</div>
 
-        <label class="ui-settings-label" for="uiScale" data-i18n="settings_text_size">Размер текста</label>
-        <input id="uiScale" class="form-range mb-2" type="range" min="0.9" max="1.15" step="0.01" value="1" />
+        <label class="ui-settings-label mt-2" for="uiScale" data-i18n="settings_text_size">Размер текста</label>
+        <input id="uiScale" class="form-range mb-0" type="range" min="0.8" max="1.3" step="0.01" value="1" />
+        <div id="uiScaleValue" class="ui-scale-value">100%</div>
 
-        <div class="form-check form-switch mb-2">
+        <div class="form-check form-switch mb-2 mt-2">
             <input class="form-check-input" type="checkbox" id="uiCompact" />
             <label class="form-check-label" for="uiCompact" data-i18n="settings_compact">Компактный режим</label>
         </div>
